@@ -58,6 +58,12 @@ SECTIONS
 		__init_array_end = .;
 	} > FLASH = 0xFF
 
+/*
+ * TODO(@jamesmunns): I added the "+ 128" in this section because I was having
+ *   problems with overlapping sections with arm-none-eabi-gcc 4.9.3. Simon did
+ *   not have this problem with GCC 6.x.x, so its either a bug, or something odd.
+ *   This should be investigated. Sorry for the hack.
+ */
 	.ARM.exidx : {
 		__exidx_start = .;
 		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
