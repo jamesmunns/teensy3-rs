@@ -1,8 +1,6 @@
 #![feature(lang_items)]
 #![no_std]
 
-extern crate gregor;
-
 #[allow(dead_code, non_snake_case, non_camel_case_types, non_upper_case_globals, improper_ctypes)]
 #[path = "bindings.rs"]
 mod teensy3;

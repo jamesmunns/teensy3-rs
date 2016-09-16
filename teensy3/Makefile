@@ -88,7 +88,7 @@ C_FILES := $(wildcard *.c)
 CPP_FILES := $(wildcard *.cpp)
 OBJS := $(C_FILES:.c=.o) $(CPP_FILES:.cpp=.o)
 
-RUST_LIB = ../target/thumbv7em-none-eabi/release/libclock.a
+RUST_LIB = ../target/thumbv7em-none-eabi/release/libteensy3.a
 
 
 # the actual makefile rules (all .o files built by GNU make's default implicit rules)
