@@ -1,0 +1,10 @@
+[package]
+name = "clock"
+version = "0.1.0"
+authors = ["Simon Sapin <simon.sapin@exyr.org>"]
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+gregor = "0.3"
