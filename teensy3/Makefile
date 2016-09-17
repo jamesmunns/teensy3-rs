@@ -93,18 +93,19 @@ RUST_LIB = ../target/thumbv7em-none-eabi/release/libteensy3.a
 
 # the actual makefile rules (all .o files built by GNU make's default implicit rules)
 
-all: $(TARGET).hex
+all: $(TARGET).elf
+# all: $(OBJS) $(MCU_LD) Makefile
 
 $(TARGET).elf: $(OBJS) $(MCU_LD) $(RUST_LIB) Makefile
 	@$(CC) $(LDFLAGS) -o $@ $(OBJS) $(RUST_LIB) $(LIBS)
 
-%.hex: %.elf
-#	$(SIZE) $<
-	@$(OBJCOPY) -O ihex -R .eeprom $< $@
-ifneq (,$(wildcard $(TOOLSPATH)))
-	$(TOOLSPATH)/teensy_post_compile -file=$(basename $@) -path=$(shell pwd) -tools=$(TOOLSPATH)
-	-$(TOOLSPATH)/teensy_reboot
-endif
+# %.hex: %.elf
+# #	$(SIZE) $<
+# 	@$(OBJCOPY) -O ihex -R .eeprom $< $@
+# ifneq (,$(wildcard $(TOOLSPATH)))
+# 	$(TOOLSPATH)/teensy_post_compile -file=$(basename $@) -path=$(shell pwd) -tools=$(TOOLSPATH)
+# 	-$(TOOLSPATH)/teensy_reboot
+# endif
 
 # compiler generated dependency info
 -include $(OBJS:.o=.d)

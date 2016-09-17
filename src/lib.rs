@@ -17,7 +17,7 @@ pub unsafe extern fn main() {
         teensy3::digitalWrite(13, teensy3::LOW as u8);
         teensy3::delay(1000);
         teensy3::digitalWrite(13, teensy3::HIGH as u8);
-        teensy3::delay(1000);
+        teensy3::delay(2000);
     }
 }
 
