@@ -2,46 +2,20 @@
 #![no_std]
 #![no_main]
 
-#[allow(dead_code, non_snake_case, non_camel_case_types, non_upper_case_globals, improper_ctypes)]
-#[path = "bindings.rs"]
-mod teensy3;
-
 #[macro_use]
-mod serial;
-use serial::Serial;
+extern crate teensy3;
+
+use teensy3::bindings;
 
 #[no_mangle]
 pub unsafe extern fn main() {
     // Blink Loop
-    teensy3::pinMode(13, teensy3::OUTPUT as u8);
+    bindings::pinMode(13, bindings::OUTPUT as u8);
     loop {
-        teensy3::digitalWrite(13, teensy3::LOW as u8);
-        teensy3::delay(500);
-        teensy3::digitalWrite(13, teensy3::HIGH as u8);
-        teensy3::delay(200);
-    }
-}
-
-fn read_int(delimiter: u8) -> u32 {
-    Serial.try_read_int_until(delimiter).unwrap()
-}
-
-mod std {
-    pub use core::*;
-    pub mod os {
-        #[allow(non_camel_case_types)]
-        pub mod raw {
-            pub enum c_void {}
-            pub type c_uchar = u8;
-            pub type c_short = i16;
-            pub type c_ushort = u16;
-            pub type c_int = i32;
-            pub type c_uint = u32;
-            pub type c_long = i32;
-            pub type c_ulong = u32;
-            pub type c_longlong = i64;
-            pub type c_ulonglong = u64;
-        }
+        bindings::digitalWrite(13, bindings::LOW as u8);
+        bindings::delay(500);
+        bindings::digitalWrite(13, bindings::HIGH as u8);
+        bindings::delay(200);
     }
 }
 

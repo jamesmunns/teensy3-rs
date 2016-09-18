@@ -1,8 +1,10 @@
 [package]
-name = "teensy3"
+name = "teensy3-demo"
 version = "0.1.0"
 authors = ["Simon Sapin <simon.sapin@exyr.org>", "James Munns <james.munns@gmail.com"]
-build = "build.rs"
+
+[dependencies]
+teensy3 = { path = "teensy3" }
 
 [profile.dev]
 panic = "abort"
