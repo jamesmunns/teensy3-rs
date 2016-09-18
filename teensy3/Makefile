@@ -1,3 +1,5 @@
+# NOTE: when COMPILERPATH is specified, it must have a trailing slash
+
 # set your MCU type here, or make command line `make MCU=MK20DX256`
 MCU=MK20DX256
 
@@ -47,13 +49,7 @@ TOOLSPATH = $(abspath $(ARDUINOPATH)/hardware/tools)   # on Linux
 LIBRARYPATH = $(abspath $(ARDUINOPATH)/libraries)
 
 # path location for the arm-none-eabi compiler
-COMPILERPATH = $(abspath $(ARDUINOPATH)/hardware/tools/arm/bin)
-
-else
-# Default to the normal GNU/Linux compiler path if NO_ARDUINO
-# and ARDUINOPATH was not set.
-COMPILERPATH ?= /usr/local/bin
-
+COMPILERPATH = $(abspath $(ARDUINOPATH)/hardware/tools/arm/bin)/
 endif
 
 #************************************************************************
@@ -73,11 +69,11 @@ CFLAGS =
 LDFLAGS = -Os -Wl,--gc-sections,--defsym=__rtc_localtime=0 --specs=nano.specs -mcpu=cortex-m4 -mthumb -T$(MCU_LD)
 
 # names for the compiler programs
-AR = $(COMPILERPATH)/arm-none-eabi-ar
-CC = $(COMPILERPATH)/arm-none-eabi-gcc
-CXX = $(COMPILERPATH)/arm-none-eabi-g++
-OBJCOPY = $(COMPILERPATH)/arm-none-eabi-objcopy
-SIZE = $(COMPILERPATH)/arm-none-eabi-size
+AR = $(COMPILERPATH)arm-none-eabi-ar
+CC = $(COMPILERPATH)arm-none-eabi-gcc
+CXX = $(COMPILERPATH)arm-none-eabi-g++
+OBJCOPY = $(COMPILERPATH)arm-none-eabi-objcopy
+SIZE = $(COMPILERPATH)arm-none-eabi-size
 
 # automatically create lists of the sources and objects
 # TODO: this does not handle Arduino libraries yet...
