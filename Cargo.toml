@@ -4,9 +4,8 @@ version = "0.1.0"
 authors = ["Simon Sapin <simon.sapin@exyr.org>", "James Munns <james.munns@gmail.com"]
 build = "build.rs"
 
-# cargo:rerun-if-changed=target/thumbv7em-none-eabi/release/libteensy3.a
-# cargo:rerun-if-changed=teensy3
+[profile.dev]
+panic = "abort"
 
-
-[lib]
-crate-type = ["staticlib"]
+[profile.release]
+panic = "abort"
