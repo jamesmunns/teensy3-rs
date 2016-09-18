@@ -1,4 +1,4 @@
-use teensy3;
+use bindings;
 use core::fmt;
 
 
@@ -8,7 +8,7 @@ pub struct Serial;
 impl Serial {
     pub fn readable(self) -> bool {
         unsafe {
-            teensy3::usb_serial_available() > 0
+            bindings::usb_serial_available() > 0
         }
     }
 
@@ -17,28 +17,15 @@ impl Serial {
     }
 
     pub fn try_read_byte(self) -> Result<u8, &'static str> {
-        match unsafe { teensy3::usb_serial_getchar() } {
+        match unsafe { bindings::usb_serial_getchar() } {
             -1 => Err("usb_serial_getchar returned -1"),
             byte => Ok(byte as u8)
         }
     }
 
-    pub fn try_read_int_until(self, delimiter: u8) -> Result<u32, &'static str> {
-        let mut result = 0;
-        loop {
-            let byte = try!(self.try_read_byte());
-            if byte == delimiter {
-                return Ok(result)
-            }
-            let digit = try!((byte as char).to_digit(10).ok_or("expected a decimal digit"));
-            result *= 10;
-            result += digit;
-        }
-    }
-
     pub fn write_bytes(self, bytes: &[u8]) -> Result<(), ()> {
         unsafe {
-            if teensy3::usb_serial_write(bytes.as_ptr() as *const _, bytes.len() as u32) >= 0 {
+            if bindings::usb_serial_write(bytes.as_ptr() as *const _, bytes.len() as u32) >= 0 {
                 Ok(())
             } else {
                 Err(())

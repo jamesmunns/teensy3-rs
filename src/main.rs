@@ -2,26 +2,21 @@
 #![no_std]
 #![no_main]
 
-extern crate teensy3_sys as teensy3;
-
 #[macro_use]
-mod serial;
-use serial::Serial;
+extern crate teensy3;
+
+use teensy3::bindings;
 
 #[no_mangle]
 pub unsafe extern fn main() {
     // Blink Loop
-    teensy3::pinMode(13, teensy3::OUTPUT as u8);
+    bindings::pinMode(13, bindings::OUTPUT as u8);
     loop {
-        teensy3::digitalWrite(13, teensy3::LOW as u8);
-        teensy3::delay(500);
-        teensy3::digitalWrite(13, teensy3::HIGH as u8);
-        teensy3::delay(200);
+        bindings::digitalWrite(13, bindings::LOW as u8);
+        bindings::delay(500);
+        bindings::digitalWrite(13, bindings::HIGH as u8);
+        bindings::delay(200);
     }
-}
-
-fn read_int(delimiter: u8) -> u32 {
-    Serial.try_read_int_until(delimiter).unwrap()
 }
 
 #[lang = "panic_fmt"]
