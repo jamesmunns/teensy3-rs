@@ -20,6 +20,11 @@ To use this, please see [this demo repo](https://github.com/jamesmunns/teensy3-r
 
 We've been crated!
 
+## Package layout
+
+* `teensy3-sys` - This crate contains the C/C++ code and the Rust bindings against them. All items are generally unsafe, and not idiomatic rust.
+* `teensy3` - This crate contains any ergonomic wrappers around `teensy3-sys` components, as well as any pure rust reimplementations of other components. `teensy3-sys` is re-exported as `teensy3::bindings`.
+
 ## Thanks, Citiations
 
 This code is nearly entirely thanks to these resources:
