@@ -4,3 +4,4 @@ target
 *.elf
 *.hex
 *.a
+Cargo.lock
