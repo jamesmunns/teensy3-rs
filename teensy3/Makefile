@@ -72,10 +72,6 @@ CFLAGS =
 # linker options
 LDFLAGS = -Os -Wl,--gc-sections,--defsym=__rtc_localtime=0 --specs=nano.specs -mcpu=cortex-m4 -mthumb -T$(MCU_LD)
 
-# additional libraries to link
-# LIBS = -lm -Wl,--start-group -lnosys -lc -lgcc -Wl,--end-group
-
-
 # names for the compiler programs
 AR = $(COMPILERPATH)/arm-none-eabi-ar
 CC = $(COMPILERPATH)/arm-none-eabi-gcc
@@ -89,26 +85,10 @@ C_FILES := $(wildcard *.c)
 CPP_FILES := $(wildcard *.cpp)
 OBJS := $(C_FILES:.c=.o) $(CPP_FILES:.cpp=.o)
 
-# RUST_LIB = ../target/thumbv7em-none-eabi/release/libteensy3.a
-
-
 # the actual makefile rules (all .o files built by GNU make's default implicit rules)
 
-#all: $(TARGET).elf
-#all: $(OBJS) $(MCU_LD) Makefile
 all: $(OBJS)
 	@$(AR) crus libteensyduino.a $(OBJS)
-
-# $(TARGET).elf: $(OBJS) $(MCU_LD) $(RUST_LIB) Makefile
-# 	@$(CC) $(LDFLAGS) -o $@ $(OBJS) $(RUST_LIB) $(LIBS)
-
-# %.hex: %.elf
-# #	$(SIZE) $<
-# 	@$(OBJCOPY) -O ihex -R .eeprom $< $@
-# ifneq (,$(wildcard $(TOOLSPATH)))
-# 	$(TOOLSPATH)/teensy_post_compile -file=$(basename $@) -path=$(shell pwd) -tools=$(TOOLSPATH)
-# 	-$(TOOLSPATH)/teensy_reboot
-# endif
 
 # compiler generated dependency info
 -include $(OBJS:.o=.d)
