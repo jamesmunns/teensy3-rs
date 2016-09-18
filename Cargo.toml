@@ -2,6 +2,10 @@
 name = "teensy3"
 version = "0.1.0"
 authors = ["Simon Sapin <simon.sapin@exyr.org>", "James Munns <james.munns@gmail.com"]
+build = "build.rs"
 
-[lib]
-crate-type = ["staticlib"]
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"

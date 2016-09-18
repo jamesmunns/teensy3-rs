@@ -3,3 +3,4 @@ target
 *.d
 *.elf
 *.hex
+*.a

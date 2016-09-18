@@ -12,10 +12,14 @@
     "target-pointer-width": "32",
     "no-compiler-rt": true,
     "pre-link-args": [
-        "-mcpu=cortex-m4", "-mthumb",
-        "-Tlayout.ld"
+        "-mcpu=cortex-m4",
+        "-mthumb",
+        "-Tteensy3/mk20dx256.ld",
+        "-Os",
+        "-Wl,--gc-sections,--defsym=__rtc_localtime=0",
+        "--specs=nano.specs"
     ],
     "post-link-args": [
-        "-lm", "-lgcc", "-lnosys"
+        "-lm", "-Wl,--start-group", "-lnosys", "-lc", "-lgcc", "-Wl,--end-group"
     ]
 }
