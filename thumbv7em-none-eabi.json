@@ -14,7 +14,7 @@
     "pre-link-args": [
         "-mcpu=cortex-m4",
         "-mthumb",
-        "-Tteensy3/mk20dx256.ld",
+        "-Tteensy3-sys/teensy3-core/mk20dx256.ld",
         "-Os",
         "-Wl,--gc-sections,--defsym=__rtc_localtime=0",
         "--specs=nano.specs"

@@ -1,4 +1,11 @@
 [root]
 name = "teensy3"
 version = "0.1.0"
+dependencies = [
+ "teensy3-sys 0.1.0",
+]
+
+[[package]]
+name = "teensy3-sys"
+version = "0.1.0"
 

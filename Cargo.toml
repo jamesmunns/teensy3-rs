@@ -2,7 +2,9 @@
 name = "teensy3"
 version = "0.1.0"
 authors = ["Simon Sapin <simon.sapin@exyr.org>", "James Munns <james.munns@gmail.com"]
-build = "build.rs"
+
+[dependencies]
+teensy3-sys = { path = "teensy3-sys" }
 
 [profile.dev]
 panic = "abort"
