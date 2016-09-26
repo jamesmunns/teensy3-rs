@@ -4,4 +4,4 @@ version = "0.1.0"
 authors = ["Simon Sapin <simon.sapin@exyr.org>", "James Munns <james.munns@gmail.com>"]
 
 [dependencies]
-teensy3-sys = { git = "https://github.com/jamesmunns/teensy3-sys-rs" }
+teensy3-sys = { path = "../teensy3-sys" }
