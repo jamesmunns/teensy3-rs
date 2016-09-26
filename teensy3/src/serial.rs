@@ -5,6 +5,7 @@ use core::fmt;
 #[derive(Copy, Clone)]
 pub struct Serial;
 
+/// Struct for the onboard USB port. Should be treated as a singleton
 impl Serial {
     pub fn readable(self) -> bool {
         unsafe {
@@ -40,6 +41,7 @@ impl fmt::Write for Serial {
     }
 }
 
+/// print!() using the onboard USB serial port
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => {
@@ -48,6 +50,7 @@ macro_rules! print {
     }
 }
 
+/// println!() using the onboard USB serial port
 #[macro_export]
 macro_rules! println {
     ($($arg:tt)*) => {
