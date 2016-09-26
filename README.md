@@ -47,4 +47,6 @@ Sorry for the lack of definite documents. More to come.
 
 ## License
 
-MIT License, unless otherwise specified
+Rust contriibutions are licensed under the MIT License.
+
+**Please Note:** ASM, C, C++, and Linker Components of the `teensy3-sys` crate (a dependency of the `teensy3` crate) contain components licensed under the MIT License, PJRC's modified MIT License, and the LGPL v2.1. Please refer to individual components for more details.
