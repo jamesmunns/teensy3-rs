@@ -45,8 +45,7 @@ impl fmt::Write for Serial {
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => {
-        use core::fmt::Write;
-        write!($crate::serial::Serial, $($arg)*).unwrap()
+        ::core::fmt::Write::write_fmt(&mut $crate::serial::Serial, format_args!($($arg)*)).ok();
     }
 }
 
