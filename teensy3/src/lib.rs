@@ -10,11 +10,13 @@
 pub extern crate teensy3_sys as bindings;
 
 /// Safe wrapper for the USB Serial Port
+#[macro_use]
 pub mod serial;
 
 /// Processor panic
 #[lang = "panic_fmt"]
 pub extern fn rust_begin_panic(msg: core::fmt::Arguments, file: &'static str, line: u32) -> ! {
+    println!("{:?}-{:?}-{:?}", msg, file, line);
     loop {}
 }
 
