@@ -5,6 +5,7 @@
 
 #![no_std]
 #![feature(lang_items)]
+#![allow(dead_code)]
 
 /// Unsafe C++ Teensyduino bindings from the teensy3-sys crate
 pub extern crate teensy3_sys as bindings;
@@ -12,6 +13,8 @@ pub extern crate teensy3_sys as bindings;
 /// Safe wrapper for the USB Serial Port
 #[macro_use]
 pub mod serial;
+
+pub mod spi;
 
 /// Processor panic
 #[lang = "panic_fmt"]
