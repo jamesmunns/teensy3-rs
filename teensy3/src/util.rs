@@ -1,11 +1,15 @@
+//! Basic Arduino utilities for the Teensy 3.1/3.2
+
 use bindings;
 
+/// Delay at least `ms` milliseconds
 pub fn delay(ms: u32) {
     unsafe {
         bindings::delay(ms);
     }
 }
 
+/// Set `pin` to high or low
 pub fn digital_write(pin: u8, val: bool)
 {
     unsafe {
@@ -14,6 +18,7 @@ pub fn digital_write(pin: u8, val: bool)
     }
 }
 
+/// Read high or low from `pin`
 pub fn digital_read(pin: u8) -> bool {
     unsafe {
         if bindings::digitalRead(pin) == 0u8 {false} else {true}
@@ -29,6 +34,7 @@ pub enum PinMode {
     OutputOpenDrain,
 }
 
+/// Set `pin` to `mode`
 pub fn pin_mode(pin: u8, mode: PinMode) {
     unsafe {
         bindings::pinMode(pin, match mode {

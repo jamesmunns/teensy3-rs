@@ -1,11 +1,15 @@
+//! Safe bindings for the primary SPI port of the Teensy 3.1/3.2
+
 use bindings;
 
+/// Bit order for SPI data TX/RX
 #[derive(Debug, PartialEq)]
 pub enum BitOrder {
     MsbFirst,
     LsbFirst,
 }
 
+/// Data TX Mode
 #[derive(Debug, PartialEq)]
 pub enum Mode {
     Mode0,
@@ -14,6 +18,7 @@ pub enum Mode {
     Mode3
 }
 
+/// Settings structure for the SPI peripheral
 #[derive(Debug, PartialEq)]
 pub struct SpiSettings {
     max_clock: u32,
@@ -87,12 +92,14 @@ pub struct Spi;
 use bindings::SPIClass;
 
 impl Spi {
+    /// Initialize the SPI peripheral
     pub fn begin(&self) {
         unsafe {
             SPIClass::begin();
         }
     }
 
+    /// Begin a single SPI data transaction
     pub fn begin_transaction(&self, settings: &SpiSettings) {
         unsafe {
             SPIClass::beginTransaction(bindings::SPISettings{
@@ -101,14 +108,16 @@ impl Spi {
         }
     }
 
+    /// Finalize a SPI data transaction
     pub fn end_transaction(&self) {
         unsafe {
             SPIClass::endTransaction();
         }
     }
 
-    /// Replace each input byte with an output byte
-    // Improve once https://github.com/rust-lang/rfcs/issues/1038 lands
+    /// Send N bytes, replacing each input byte with the associated output byte
+    ///
+    /// TODO: Improve once https://github.com/rust-lang/rfcs/issues/1038 lands
     pub fn transfer_replace(&self, data: &mut [u8]) {
         for mut byte in data.iter_mut() {
             *byte = unsafe {

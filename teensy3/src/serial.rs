@@ -6,16 +6,19 @@ pub struct Serial;
 
 /// Struct for the onboard USB port. Should be treated as a singleton
 impl Serial {
+    /// Is serial data available?
     pub fn readable(self) -> bool {
         unsafe {
             bindings::usb_serial_available() > 0
         }
     }
 
+    /// Read a byte, panic if no data available
     pub fn read_byte(self) -> u8 {
         self.try_read_byte().unwrap()
     }
 
+    /// Try to read a byte
     pub fn try_read_byte(self) -> Result<u8, &'static str> {
         match unsafe { bindings::usb_serial_getchar() } {
             -1 => Err("usb_serial_getchar returned -1"),
@@ -23,6 +26,7 @@ impl Serial {
         }
     }
 
+    /// Write N bytes to the serial port
     pub fn write_bytes(self, bytes: &[u8]) -> Result<(), ()> {
         unsafe {
             if bindings::usb_serial_write(bytes.as_ptr() as *const _, bytes.len() as u32) >= 0 {
@@ -53,5 +57,7 @@ macro_rules! print {
 macro_rules! println {
     ($($arg:tt)*) => {
         ::core::fmt::Write::write_fmt(&mut $crate::serial::Serial, format_args!($($arg)*)).ok();
+        let ser = $crate::serial::Serial{};
+        ser.write_bytes("\n\r".as_bytes()).ok();
     }
 }
