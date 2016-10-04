@@ -56,21 +56,26 @@ impl SpiSettings {
             c |= 0x01000000;
         }
 
+        // if (dataMode & 0x04) {
+        //     c |= SPI_CTAR_CPHA;
+        //     t = (t & 0xFFFF0FFF) | ((t & 0xF000) >> 4);
+        // }
+        // if (dataMode & 0x08) {
+        //     c |= SPI_CTAR_CPOL;
+        // }
         match self.mode {
-            // if (dataMode & 0x08) {
-            //     c |= SPI_CTAR_CPOL;
-            // }
-            Mode::Mode2 => {c |= 0x04000000},
-
-            // if (dataMode & 0x04) {
-            //     c |= SPI_CTAR_CPHA;
-            //     t = (t & 0xFFFF0FFF) | ((t & 0xF000) >> 4);
-            // }
+            Mode::Mode0 => {},
             Mode::Mode1 => {
                 c |= 0x02000000;
                 t = (t & 0xFFFF0FFF) | ((t & 0xF000) >> 4);
             },
-            _ => {},
+            Mode::Mode2 => {
+                c |= 0x04000000
+            },
+            Mode::Mode3 => {
+                c |= 0x06000000;
+                t = (t & 0xFFFF0FFF) | ((t & 0xF000) >> 4);
+            },
         }
 
         c | t
@@ -82,13 +87,13 @@ pub struct Spi;
 use bindings::SPIClass;
 
 impl Spi {
-    pub fn begin() {
+    pub fn begin(&self) {
         unsafe {
             SPIClass::begin();
         }
     }
 
-    pub fn begin_transaction(settings: &SpiSettings) {
+    pub fn begin_transaction(&self, settings: &SpiSettings) {
         unsafe {
             SPIClass::beginTransaction(bindings::SPISettings{
                 ctar: settings.ctar,
@@ -96,7 +101,7 @@ impl Spi {
         }
     }
 
-    pub fn end_transaction() {
+    pub fn end_transaction(&self) {
         unsafe {
             SPIClass::endTransaction();
         }
@@ -104,7 +109,7 @@ impl Spi {
 
     /// Replace each input byte with an output byte
     // Improve once https://github.com/rust-lang/rfcs/issues/1038 lands
-    pub fn transfer_replace(data: &mut [u8]) {
+    pub fn transfer_replace(&self, data: &mut [u8]) {
         for mut byte in data.iter_mut() {
             *byte = unsafe {
                 SPIClass::transfer(*byte)

@@ -10,16 +10,16 @@
 /// Unsafe C++ Teensyduino bindings from the teensy3-sys crate
 pub extern crate teensy3_sys as bindings;
 
-/// Safe wrapper for the USB Serial Port
+/// "Safe" wrappers
 #[macro_use]
 pub mod serial;
-
 pub mod spi;
+pub mod util;
 
 /// Processor panic
 #[lang = "panic_fmt"]
 pub extern fn rust_begin_panic(msg: core::fmt::Arguments, file: &'static str, line: u32) -> ! {
-    println!("{:?}-{:?}-{:?}", msg, file, line);
+    println!("{:?}:{:?} - {:?}\n\r", file, line, msg);
     loop {}
 }
 
