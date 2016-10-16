@@ -22,11 +22,9 @@ To use this crate, please see [this demo repo](https://github.com/jamesmunns/tee
 
 ## Dependencies
 
-* A somewhat current Nightly Build of Rust (currently tested on `rustc 1.13.0-nightly (4f9812a59 2016-09-21)`)
+* A somewhat current Nightly Build of Rust (currently tested on `rustc 1.14.0-nightly (098d22845 2016-10-13)`)
 * [Japaric's Xargo Tool](https://github.com/japaric/xargo) - used to cross compile libcore
 * A somewhat current arm-none-eabi-gcc toolchain.
-    * 4.9.3 seems to work with a slight linkerfile hack
-    * 6.x.x seems to work without hacks.
 
 ## Thanks, Citiations
 
