@@ -8,4 +8,4 @@ repository = "https://github.com/jamesmunns/teensy3-rs"
 documentation = "https://docs.rs/crate/teensy3/"
 
 [dependencies]
-teensy3-sys = "0.1"
+teensy3-sys = {version = "0.1", path = "../teensy3-sys"}
