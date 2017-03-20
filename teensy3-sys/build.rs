@@ -1,3 +1,5 @@
+extern crate bindgen;
+
 use std::env;
 use std::fs::read_dir;
 use std::path::PathBuf;
@@ -66,6 +68,24 @@ fn main() {
     );
     println!("cargo:rustc-link-search=native={}", outdir.to_str().unwrap());
     println!("cargo:rustc-link-lib=static=teensyduino");
+
+    bindgen::Builder::default()
+        .no_unstable_rust()
+        .use_core()
+        .generate_inline_functions(true)
+        .header("bindings.h")
+        .ctypes_prefix("c_types")
+        .clang_args(&compiler_args)
+        .clang_arg("-x")
+        .clang_arg("c++")
+        .clang_arg("-std=gnu++0x")
+        .clang_arg("-target")
+        .clang_arg(env::var("TARGET").unwrap())
+        .generate()
+        .expect("error when generating bindings")
+        .write_to_file(outdir.join("bindings.rs"))
+        .expect("error when writing bindings");
+
 }
 
 fn check(command: &mut Command) {

@@ -1,3 +1,3 @@
-#include "teensy3/WProgram.h"
-#include "teensy3/SPI.h"
-#include "teensy3/Wire.h"
+#include "teensy3-core/Arduino.h"
+#include "teensy3-core/SPI.h"
+#include "teensy3-core/Wire.h"
