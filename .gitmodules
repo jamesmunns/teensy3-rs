@@ -1,0 +1,9 @@
+[submodule "teensy3-sys/cores"]
+	path = teensy3-sys/cores
+	url = https://github.com/PaulStoffregen/cores
+[submodule "teensy3-sys/SPI"]
+	path = teensy3-sys/SPI
+	url = https://github.com/PaulStoffregen/SPI
+[submodule "teensy3-sys/Wire"]
+	path = teensy3-sys/Wire
+	url = https://github.com/PaulStoffregen/Wire
