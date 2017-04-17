@@ -43,8 +43,8 @@ impl SpiSettings {
 
     fn render(&self) -> RenderedSpi {
         let mut t = unsafe {
-            let mut t_out: u32 = bindings::SPISettings_consts_ctar_div_table[0] as u32;
-            for t in bindings::SPISettings_consts_ctar_div_table.iter() {
+            let mut t_out: u32 = bindings::SPISettings_ctar_div_table[0] as u32;
+            for t in bindings::SPISettings_ctar_div_table.iter() {
                 t_out = *t as u32;
                 if self.max_clock > (bindings::F_BUS as u32 / t_out) {
                     break;
