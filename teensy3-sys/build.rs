@@ -1,18 +1,77 @@
 use std::env;
+use std::fs::read_dir;
+use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
-    let outdir = env::var("OUT_DIR").unwrap();
-    println!("cargo:rustc-link-search=native={}", outdir);
+    let c_compiler = "arm-none-eabi-gcc";
+    let cpp_compiler = "arm-none-eabi-g++";
+    let archive = "arm-none-eabi-ar";
 
-    // TODO(@jamesmunns): How do I pipe stdout here so we dont just silently wait?
-    assert!(Command::new("make")
-        .args(&["--no-print-directory", "-C", "teensy3-core", "NO_ARDUINO=1"])
-        .status()
-        .expect("failed to build Teensyduino libs")
-        .success());
+    // Both C and C++
+    let compiler_args = [
+        "-mthumb",
+        "-mcpu=cortex-m4",
+        "-D__MK20DX256__",
+        "-DF_CPU=48000000",
 
-    println!("cargo:rustc-link-search={}/teensy3-core", env!("CARGO_MANIFEST_DIR"));
-    println!("cargo:libdir=teensy");
+        "-DUSB_SERIAL",
+        "-DLAYOUT_US_ENGLISH",
+        "-DTEENSYDUINO=121",
+        "-g",
+        "-Os",
+    ];
+
+    // C only
+    let c_args = [
+    ];
+
+    // C++ only
+    let cpp_args = [
+        "-std=gnu++0x",
+        "-felide-constructors",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-fkeep-inline-functions",
+    ];
+
+    let srcdir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap()).join("teensy3-core");
+    let outdir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
+    let mut objs = Vec::new();
+    for entry in read_dir(&srcdir).unwrap() {
+        let path = entry.unwrap().path();
+        let (compiler, extra_args) = match path.extension() {
+            Some(e) if e == "c" => (c_compiler, &c_args[..]),
+            Some(e) if e == "cpp" => (cpp_compiler, &cpp_args[..]),
+            _ => continue,
+        };
+        let obj = PathBuf::from(path.with_extension("o").file_name().unwrap());
+        check(
+            Command::new(compiler)
+            .args(&compiler_args)
+            .args(extra_args)
+            .arg("-I").arg(&srcdir)
+            .arg("-c").arg(&path)
+            .arg("-o").arg(&obj)
+            .current_dir(&outdir)
+        );
+        objs.push(obj);
+    }
+    check(
+        Command::new(archive)
+        .arg("crus")
+        .arg(outdir.join("libteensyduino.a"))
+        .args(objs)
+        .current_dir(&outdir)
+    );
+    println!("cargo:rustc-link-search=native={}", outdir.to_str().unwrap());
     println!("cargo:rustc-link-lib=static=teensyduino");
+}
+
+fn check(command: &mut Command) {
+    match command.status() {
+        Ok(ref status) if status.success() => {}
+        Ok(ref status) => panic!("command `{:?}` exited with {}.", command, status),
+        Err(ref error) => panic!("could not start command `{:?}`: {}.", command, error),
+    }
 }
