@@ -7,5 +7,13 @@ description = "Rust interface layer for the Teensy 3.1/3.2 microcontroller"
 repository = "https://github.com/jamesmunns/teensy3-rs"
 documentation = "https://docs.rs/crate/teensy3/"
 
-[dependencies]
-teensy3-sys = {version = "0.2", path = "../teensy3-sys"}
+[features]
+teensy_3_0 = ["teensy3-sys/teensy_3_0"]
+teensy_3_1 = ["teensy3-sys/teensy_3_1"]
+teensy_3_2 = ["teensy3-sys/teensy_3_2"]
+teensy_3_5 = ["teensy3-sys/teensy_3_5"]
+teensy_3_6 = ["teensy3-sys/teensy_3_6"]
+
+[dependencies.teensy3-sys]
+version = "0.2"
+path = "../teensy3-sys"

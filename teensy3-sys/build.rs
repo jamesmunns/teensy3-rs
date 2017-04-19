@@ -6,7 +6,23 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+fn flag_sanity_check() {
+    let uc_3_0 = cfg!(feature = "teensy_3_0");
+    let uc_3_1 = cfg!(feature = "teensy_3_1");
+    let uc_3_2 = cfg!(feature = "teensy_3_2");
+    let uc_3_5 = cfg!(feature = "teensy_3_5");
+    let uc_3_6 = cfg!(feature = "teensy_3_6");
+
+    // Is one and only one feature flag set?
+    if !(uc_3_0 ^ uc_3_1 ^ uc_3_2 ^ uc_3_5 ^ uc_3_6) {
+        panic!("Check 'teensy_3_x' feature!");
+    }
+}
+
 fn main() {
+
+    flag_sanity_check();
+
     let source_dirs = [
         "cores/teensy3",
         "SPI",
