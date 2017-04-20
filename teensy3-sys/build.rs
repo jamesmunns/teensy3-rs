@@ -6,22 +6,109 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-fn flag_sanity_check() {
+#[derive(Debug)]
+struct CompilerOpts {
+    compiler_args: Vec<&'static str>,
+    c_args: Vec<&'static str>,
+    cpp_args: Vec<&'static str>,
+}
+
+fn flag_sanity_check() -> Result<CompilerOpts, ()> {
     let uc_3_0 = cfg!(feature = "teensy_3_0");
     let uc_3_1 = cfg!(feature = "teensy_3_1");
     let uc_3_2 = cfg!(feature = "teensy_3_2");
     let uc_3_5 = cfg!(feature = "teensy_3_5");
     let uc_3_6 = cfg!(feature = "teensy_3_6");
 
-    // Is one and only one feature flag set?
-    if !(uc_3_0 ^ uc_3_1 ^ uc_3_2 ^ uc_3_5 ^ uc_3_6) {
-        panic!("Check 'teensy_3_x' feature!");
+    // TODO: de-dupe
+    match (uc_3_0, uc_3_1, uc_3_2, uc_3_5, uc_3_6) {
+        (false, true, false, false, false) => { // Teensy 3.1
+            Ok(CompilerOpts {
+                compiler_args: vec![
+                    "-mthumb",
+                    "-mcpu=cortex-m4",
+                    "-D__MK20DX256__",
+                    "-DF_CPU=48000000",
+
+                    "-DUSB_SERIAL",
+                    "-DLAYOUT_US_ENGLISH",
+                    "-DTEENSYDUINO=121",
+                    "-g",
+                    "-Os",
+                ],
+                c_args: vec![],
+                cpp_args: vec![
+                    "-std=gnu++0x",
+                    "-felide-constructors",
+                    "-fno-exceptions",
+                    "-fno-rtti",
+                    "-fkeep-inline-functions",
+                ]
+            })
+        }
+        (false, false, true, false, false) => { // Teensy 3.2
+            Ok(CompilerOpts {
+                compiler_args: vec![
+                    "-mthumb",
+                    "-mcpu=cortex-m4",
+                    "-D__MK20DX256__",
+                    "-DF_CPU=48000000",
+
+                    "-DUSB_SERIAL",
+                    "-DLAYOUT_US_ENGLISH",
+                    "-DTEENSYDUINO=121",
+                    "-g",
+                    "-Os",
+                ],
+                c_args: vec![],
+                cpp_args: vec![
+                    "-std=gnu++0x",
+                    "-felide-constructors",
+                    "-fno-exceptions",
+                    "-fno-rtti",
+                    "-fkeep-inline-functions",
+                ]
+            })
+        }
+        (false, false, false, true, false) => { // Teensy 3.5
+            Ok(CompilerOpts {
+                compiler_args: vec![
+                    "-mthumb",
+                    "-mcpu=cortex-m4",
+                    "-D__MK64FX512__",
+                    "-DF_CPU=120000000",
+
+                    // AJM - hm. need to figure out hard float
+                    //   probably relevant to 3.1+ as well.
+                    //
+                    // "-mfloat-abi=hard",
+                    // "-mfpu=fpv4-sp-d16",
+                    // "-fsingle-precision-constant",
+                    // AJM
+
+                    "-DUSB_SERIAL",
+                    "-DLAYOUT_US_ENGLISH",
+                    "-DTEENSYDUINO=121",
+                    "-g",
+                    "-Os",
+                ],
+                c_args: vec![],
+                cpp_args: vec![
+                    "-std=gnu++0x",
+                    "-felide-constructors",
+                    "-fno-exceptions",
+                    "-fno-rtti",
+                    "-fkeep-inline-functions",
+                ]
+            })
+        }
+        _ => Err(()),
     }
 }
 
 fn main() {
 
-    flag_sanity_check();
+    let flags = flag_sanity_check().expect("Bad Feature Flags!");
 
     let source_dirs = [
         "cores/teensy3",
@@ -33,33 +120,6 @@ fn main() {
     let cpp_compiler = "arm-none-eabi-g++";
     let archive = "arm-none-eabi-ar";
 
-    // Both C and C++
-    let compiler_args = [
-        "-mthumb",
-        "-mcpu=cortex-m4",
-        "-D__MK20DX256__",
-        "-DF_CPU=48000000",
-
-        "-DUSB_SERIAL",
-        "-DLAYOUT_US_ENGLISH",
-        "-DTEENSYDUINO=121",
-        "-g",
-        "-Os",
-    ];
-
-    // C only
-    let c_args = [
-    ];
-
-    // C++ only
-    let cpp_args = [
-        "-std=gnu++0x",
-        "-felide-constructors",
-        "-fno-exceptions",
-        "-fno-rtti",
-        "-fkeep-inline-functions",
-    ];
-
     let crate_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
     let out_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
 
@@ -70,14 +130,14 @@ fn main() {
         for entry in read_dir(crate_dir.join(source_dir)).unwrap() {
             let path = entry.unwrap().path();
             let (compiler, extra_args) = match path.extension() {
-                Some(e) if e == "c" => (c_compiler, &c_args[..]),
-                Some(e) if e == "cpp" => (cpp_compiler, &cpp_args[..]),
+                Some(e) if e == "c" => (c_compiler, &flags.c_args[..]),
+                Some(e) if e == "cpp" => (cpp_compiler, &flags.cpp_args[..]),
                 _ => continue,
             };
             let obj = path.with_extension("o").file_name().unwrap().to_owned();
             check(
                 Command::new(compiler)
-                .args(&compiler_args)
+                .args(&flags.compiler_args)
                 .args(extra_args)
                 .args(&includes)
                 .arg("-c").arg(Path::new(source_dir).join(path.file_name().unwrap()))
@@ -111,7 +171,7 @@ fn main() {
         .generate_inline_functions(true)
         .header("bindings.h")
         .ctypes_prefix("c_types")
-        .clang_args(&compiler_args)
+        .clang_args(&flags.compiler_args)
         .clang_args(&includes)
         .clang_arg("-include")
         .clang_arg(modified_wprogram_h.to_str().unwrap())
