@@ -13,6 +13,25 @@ struct CompilerOpts {
     cpp_args: Vec<&'static str>,
 }
 
+static COMMON_COMPILER_ARGS: &'static [&'static str] = &[
+    "-mthumb",
+    "-DUSB_SERIAL",
+    "-DLAYOUT_US_ENGLISH",
+    "-DTEENSYDUINO=121",
+    "-g",  // TODO:
+    "-Os", // TODO: Debug/Release split
+];
+
+static COMMON_C_ARGS: &'static [&'static str] = &[];
+
+static COMMON_CPP_ARGS: &'static [&'static str] = &[
+    "-std=gnu++0x",
+    "-felide-constructors",
+    "-fno-exceptions",
+    "-fno-rtti",
+    "-fkeep-inline-functions",
+];
+
 fn flag_sanity_check() -> Result<CompilerOpts, ()> {
     let uc_3_0 = cfg!(feature = "teensy_3_0");
     let uc_3_1 = cfg!(feature = "teensy_3_1");
@@ -20,88 +39,61 @@ fn flag_sanity_check() -> Result<CompilerOpts, ()> {
     let uc_3_5 = cfg!(feature = "teensy_3_5");
     let uc_3_6 = cfg!(feature = "teensy_3_6");
 
-    // TODO: de-dupe
+    let mut base_args = CompilerOpts {
+        compiler_args: COMMON_COMPILER_ARGS.to_vec(),
+        c_args: COMMON_C_ARGS.to_vec(),
+        cpp_args: COMMON_CPP_ARGS.to_vec(),
+    };
+
     match (uc_3_0, uc_3_1, uc_3_2, uc_3_5, uc_3_6) {
-        (false, true, false, false, false) => { // Teensy 3.1
-            Ok(CompilerOpts {
-                compiler_args: vec![
-                    "-mthumb",
-                    "-mcpu=cortex-m4",
-                    "-D__MK20DX256__",
-                    "-DF_CPU=48000000",
-
-                    "-DUSB_SERIAL",
-                    "-DLAYOUT_US_ENGLISH",
-                    "-DTEENSYDUINO=121",
-                    "-g",
-                    "-Os",
-                ],
-                c_args: vec![],
-                cpp_args: vec![
-                    "-std=gnu++0x",
-                    "-felide-constructors",
-                    "-fno-exceptions",
-                    "-fno-rtti",
-                    "-fkeep-inline-functions",
-                ]
-            })
+        // Teensy 3.0
+        (true, false, false, false, false) => {
+            base_args.compiler_args.append(&mut vec![
+                "-mcpu=cortex-m4",
+                "-D__MK20DX128__",
+                "-DF_CPU=48000000",
+            ]);
+            Ok(base_args)
         }
-        (false, false, true, false, false) => { // Teensy 3.2
-            Ok(CompilerOpts {
-                compiler_args: vec![
-                    "-mthumb",
-                    "-mcpu=cortex-m4",
-                    "-D__MK20DX256__",
-                    "-DF_CPU=48000000",
-
-                    "-DUSB_SERIAL",
-                    "-DLAYOUT_US_ENGLISH",
-                    "-DTEENSYDUINO=121",
-                    "-g",
-                    "-Os",
-                ],
-                c_args: vec![],
-                cpp_args: vec![
-                    "-std=gnu++0x",
-                    "-felide-constructors",
-                    "-fno-exceptions",
-                    "-fno-rtti",
-                    "-fkeep-inline-functions",
-                ]
-            })
+        // Teensy 3.1
+        (false, true, false, false, false) => {
+            base_args.compiler_args.append(&mut vec![
+                "-mcpu=cortex-m4",
+                "-D__MK20DX256__",
+                "-DF_CPU=48000000",
+            ]);
+            Ok(base_args)
         }
+        // Teensy 3.2
+        (false, false, true, false, false) => {
+            base_args.compiler_args.append(&mut vec![
+                "-mcpu=cortex-m4",
+                "-D__MK20DX256__",
+                "-DF_CPU=48000000",
+            ]);
+            Ok(base_args)
+        }
+        // Teensy 3.5
         (false, false, false, true, false) => { // Teensy 3.5
-            Ok(CompilerOpts {
-                compiler_args: vec![
-                    "-mthumb",
-                    "-mcpu=cortex-m4",
-                    "-D__MK64FX512__",
-                    "-DF_CPU=120000000",
+            base_args.compiler_args.append(&mut vec![
+                // TODO: -m4 -> -m4f
+                "-mcpu=cortex-m4",
 
-                    // AJM - hm. need to figure out hard float
-                    //   probably relevant to 3.1+ as well.
-                    //
-                    // "-mfloat-abi=hard",
-                    // "-mfpu=fpv4-sp-d16",
-                    // "-fsingle-precision-constant",
-                    // AJM
-
-                    "-DUSB_SERIAL",
-                    "-DLAYOUT_US_ENGLISH",
-                    "-DTEENSYDUINO=121",
-                    "-g",
-                    "-Os",
-                ],
-                c_args: vec![],
-                cpp_args: vec![
-                    "-std=gnu++0x",
-                    "-felide-constructors",
-                    "-fno-exceptions",
-                    "-fno-rtti",
-                    "-fkeep-inline-functions",
-                ]
-            })
+                "-D__MK64FX512__",
+                "-DF_CPU=120000000",
+                // AJM - hm. need to figure out hard float
+                //   probably relevant to 3.1+ as well.
+                //
+                // "-mfloat-abi=hard",
+                // "-mfpu=fpv4-sp-d16",
+                // "-fsingle-precision-constant",
+                // AJM
+            ]);
+            Ok(base_args)
         }
+
+        // Either none or multiple flags were selected
+        // TODO: more descriptive failures
         _ => Err(()),
     }
 }
