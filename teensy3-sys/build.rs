@@ -20,6 +20,7 @@ static COMMON_COMPILER_ARGS: &'static [&'static str] = &[
     "-DTEENSYDUINO=121",
     "-g",  // TODO:
     "-Os", // TODO: Debug/Release split
+    "-fsingle-precision-constant",
 ];
 
 static COMMON_C_ARGS: &'static [&'static str] = &[];
@@ -77,18 +78,15 @@ fn flag_sanity_check() -> Result<CompilerOpts, ()> {
             generate_linkerfile(include_bytes!("cores/teensy3/mk64fx512.ld"));
 
             base_args.compiler_args.append(&mut vec![
-                // TODO: -m4 -> -m4f
                 "-mcpu=cortex-m4",
+
+                // Hard float, yo!
+                //   TODO: add a flag for this
+                "-mfloat-abi=hard",
+                "-mfpu=fpv4-sp-d16",
 
                 "-D__MK64FX512__",
                 "-DF_CPU=120000000",
-                // AJM - hm. need to figure out hard float
-                //   probably relevant to 3.1+ as well.
-                //
-                // "-mfloat-abi=hard",
-                // "-mfpu=fpv4-sp-d16",
-                // "-fsingle-precision-constant",
-                // AJM
             ]);
             Ok(base_args)
         }
