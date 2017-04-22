@@ -25,7 +25,7 @@ static COMMON_COMPILER_ARGS: &'static [&'static str] = &[
 static COMMON_C_ARGS: &'static [&'static str] = &[];
 
 static COMMON_CPP_ARGS: &'static [&'static str] = &[
-    "-std=gnu++0x",
+    "-std=gnu++0x", // TODO: Guarantee this matches the bindgen invokation
     "-felide-constructors",
     "-fno-exceptions",
     "-fno-rtti",
@@ -48,6 +48,8 @@ fn flag_sanity_check() -> Result<CompilerOpts, ()> {
     match (uc_3_0, uc_3_1, uc_3_2, uc_3_5, uc_3_6) {
         // Teensy 3.0
         (true, false, false, false, false) => {
+            generate_linkerfile(include_bytes!("cores/teensy3/mk20dx128.ld"));
+
             base_args.compiler_args.append(&mut vec![
                 "-mcpu=cortex-m4",
                 "-D__MK20DX128__",
@@ -57,6 +59,8 @@ fn flag_sanity_check() -> Result<CompilerOpts, ()> {
         }
         // Teensy 3.1
         (false, true, false, false, false) => {
+            generate_linkerfile(include_bytes!("cores/teensy3/mk20dx256.ld"));
+
             base_args.compiler_args.append(&mut vec![
                 "-mcpu=cortex-m4",
                 "-D__MK20DX256__",
@@ -66,6 +70,8 @@ fn flag_sanity_check() -> Result<CompilerOpts, ()> {
         }
         // Teensy 3.2
         (false, false, true, false, false) => {
+            generate_linkerfile(include_bytes!("cores/teensy3/mk20dx256.ld"));
+
             base_args.compiler_args.append(&mut vec![
                 "-mcpu=cortex-m4",
                 "-D__MK20DX256__",
@@ -75,6 +81,8 @@ fn flag_sanity_check() -> Result<CompilerOpts, ()> {
         }
         // Teensy 3.5
         (false, false, false, true, false) => { // Teensy 3.5
+            generate_linkerfile(include_bytes!("cores/teensy3/mk64fx512.ld"));
+
             base_args.compiler_args.append(&mut vec![
                 // TODO: -m4 -> -m4f
                 "-mcpu=cortex-m4",
@@ -98,9 +106,21 @@ fn flag_sanity_check() -> Result<CompilerOpts, ()> {
     }
 }
 
+fn generate_linkerfile(linker_bytes: &[u8]) {
+        // Put the linker script somewhere the top crate can find it
+        let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
+        File::create(out.join("teensy3-sys.ld"))
+            .unwrap()
+            .write_all(linker_bytes)
+            .unwrap();
+        println!("cargo:rustc-link-search={}", out.display());
+}
+
 fn main() {
 
     let flags = flag_sanity_check().expect("Bad Feature Flags!");
+
+    // TODO: Assert `teensy3-sys.ld` exists
 
     let source_dirs = [
         "cores/teensy3",
@@ -138,6 +158,14 @@ fn main() {
             objs.push(obj);
         }
     }
+
+    // TODO: Consider rolling all of the C based deps into one static lib?
+    // http://stackoverflow.com/questions/3821916/how-to-merge-two-ar-static-libraries-into-one
+    //   "-C", "link-arg=-lm",
+    //   "-C", "link-arg=-lnosys",
+    //   "-C", "link-arg=-lc",
+    //   "-C", "link-arg=-lgcc",
+
     check(
         Command::new(archive)
         .arg("crus")
