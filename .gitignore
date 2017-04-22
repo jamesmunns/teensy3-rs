@@ -5,3 +5,5 @@
 **/*.hex
 **/*.a
 **/Cargo.lock
+**/*.bk
+
