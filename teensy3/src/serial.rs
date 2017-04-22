@@ -8,9 +8,7 @@ pub struct Serial;
 impl Serial {
     /// Is serial data available?
     pub fn readable(self) -> bool {
-        unsafe {
-            bindings::usb_serial_available() > 0
-        }
+        unsafe { bindings::usb_serial_available() > 0 }
     }
 
     /// Read a byte, panic if no data available
@@ -22,7 +20,7 @@ impl Serial {
     pub fn try_read_byte(self) -> Result<u8, &'static str> {
         match unsafe { bindings::usb_serial_getchar() } {
             -1 => Err("usb_serial_getchar returned -1"),
-            byte => Ok(byte as u8)
+            byte => Ok(byte as u8),
         }
     }
 

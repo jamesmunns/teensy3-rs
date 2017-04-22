@@ -107,13 +107,13 @@ fn flag_sanity_check() -> Result<CompilerOpts, ()> {
 }
 
 fn generate_linkerfile(linker_bytes: &[u8]) {
-        // Put the linker script somewhere the top crate can find it
-        let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
-        File::create(out.join("teensy3-sys.ld"))
-            .unwrap()
-            .write_all(linker_bytes)
-            .unwrap();
-        println!("cargo:rustc-link-search={}", out.display());
+    // Put the linker script somewhere the top crate can find it
+    let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
+    File::create(out.join("teensy3-sys.ld"))
+        .unwrap()
+        .write_all(linker_bytes)
+        .unwrap();
+    println!("cargo:rustc-link-search={}", out.display());
 }
 
 fn main() {

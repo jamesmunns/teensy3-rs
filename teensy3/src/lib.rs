@@ -18,11 +18,11 @@ pub mod util;
 
 /// Processor panic
 #[lang = "panic_fmt"]
-pub extern fn rust_begin_panic(msg: core::fmt::Arguments, file: &'static str, line: u32) -> ! {
+pub extern "C" fn rust_begin_panic(msg: core::fmt::Arguments, file: &'static str, line: u32) -> ! {
     println!("{:?}:{:?} - {:?}\n\r", file, line, msg);
     loop {}
 }
 
 /// ?
 #[lang = "eh_personality"]
-pub extern fn rust_eh_personality() {}
+pub extern "C" fn rust_eh_personality() {}

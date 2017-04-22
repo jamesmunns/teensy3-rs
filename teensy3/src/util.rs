@@ -10,18 +10,25 @@ pub fn delay(ms: u32) {
 }
 
 /// Set `pin` to high or low
-pub fn digital_write(pin: u8, val: bool)
-{
+pub fn digital_write(pin: u8, val: bool) {
     unsafe {
         bindings::digitalWrite(pin,
-            if val {bindings::HIGH as u8} else {bindings::LOW as u8});
+                               if val {
+                                   bindings::HIGH as u8
+                               } else {
+                                   bindings::LOW as u8
+                               });
     }
 }
 
 /// Read high or low from `pin`
 pub fn digital_read(pin: u8) -> bool {
     unsafe {
-        if bindings::digitalRead(pin) == 0u8 {false} else {true}
+        if bindings::digitalRead(pin) == 0u8 {
+            false
+        } else {
+            true
+        }
     }
 }
 
@@ -37,12 +44,13 @@ pub enum PinMode {
 /// Set `pin` to `mode`
 pub fn pin_mode(pin: u8, mode: PinMode) {
     unsafe {
-        bindings::pinMode(pin, match mode {
-            PinMode::Input => bindings::INPUT,
-            PinMode::Output => bindings::OUTPUT,
-            PinMode::InputPullup => bindings::INPUT_PULLUP,
-            PinMode::InputPulldown => bindings::INPUT_PULLDOWN,
-            PinMode::OutputOpenDrain => bindings::OUTPUT_OPENDRAIN,
-        } as u8);
+        bindings::pinMode(pin,
+                          match mode {
+                              PinMode::Input => bindings::INPUT,
+                              PinMode::Output => bindings::OUTPUT,
+                              PinMode::InputPullup => bindings::INPUT_PULLUP,
+                              PinMode::InputPulldown => bindings::INPUT_PULLDOWN,
+                              PinMode::OutputOpenDrain => bindings::OUTPUT_OPENDRAIN,
+                          } as u8);
     }
 }
