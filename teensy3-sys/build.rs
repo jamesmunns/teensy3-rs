@@ -24,13 +24,11 @@ static COMMON_COMPILER_ARGS: &'static [&'static str] = &[
 
 static COMMON_C_ARGS: &'static [&'static str] = &[];
 
-static COMMON_CPP_ARGS: &'static [&'static str] = &[
-    "-std=gnu++0x", // TODO: Guarantee this matches the bindgen invokation
-    "-felide-constructors",
-    "-fno-exceptions",
-    "-fno-rtti",
-    "-fkeep-inline-functions",
-];
+static COMMON_CPP_ARGS: &'static [&'static str] = &["-std=gnu++0x", // TODO: Guarantee this matches the bindgen invokation
+                                                    "-felide-constructors",
+                                                    "-fno-exceptions",
+                                                    "-fno-rtti",
+                                                    "-fkeep-inline-functions"];
 
 fn flag_sanity_check() -> Result<CompilerOpts, ()> {
     let uc_3_0 = cfg!(feature = "teensy_3_0");
@@ -50,37 +48,32 @@ fn flag_sanity_check() -> Result<CompilerOpts, ()> {
         (true, false, false, false, false) => {
             generate_linkerfile(include_bytes!("cores/teensy3/mk20dx128.ld"));
 
-            base_args.compiler_args.append(&mut vec![
-                "-mcpu=cortex-m4",
-                "-D__MK20DX128__",
-                "-DF_CPU=48000000",
-            ]);
+            base_args.compiler_args.append(&mut vec!["-mcpu=cortex-m4",
+                                                     "-D__MK20DX128__",
+                                                     "-DF_CPU=48000000"]);
             Ok(base_args)
         }
         // Teensy 3.1
         (false, true, false, false, false) => {
             generate_linkerfile(include_bytes!("cores/teensy3/mk20dx256.ld"));
 
-            base_args.compiler_args.append(&mut vec![
-                "-mcpu=cortex-m4",
-                "-D__MK20DX256__",
-                "-DF_CPU=48000000",
-            ]);
+            base_args.compiler_args.append(&mut vec!["-mcpu=cortex-m4",
+                                                     "-D__MK20DX256__",
+                                                     "-DF_CPU=48000000"]);
             Ok(base_args)
         }
         // Teensy 3.2
         (false, false, true, false, false) => {
             generate_linkerfile(include_bytes!("cores/teensy3/mk20dx256.ld"));
 
-            base_args.compiler_args.append(&mut vec![
-                "-mcpu=cortex-m4",
-                "-D__MK20DX256__",
-                "-DF_CPU=48000000",
-            ]);
+            base_args.compiler_args.append(&mut vec!["-mcpu=cortex-m4",
+                                                     "-D__MK20DX256__",
+                                                     "-DF_CPU=48000000"]);
             Ok(base_args)
         }
         // Teensy 3.5
-        (false, false, false, true, false) => { // Teensy 3.5
+        (false, false, false, true, false) => {
+            // Teensy 3.5
             generate_linkerfile(include_bytes!("cores/teensy3/mk64fx512.ld"));
 
             base_args.compiler_args.append(&mut vec![
@@ -108,11 +101,11 @@ fn flag_sanity_check() -> Result<CompilerOpts, ()> {
 
 fn generate_linkerfile(linker_bytes: &[u8]) {
     // Put the linker script somewhere the top crate can find it
-    let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
+    let out = &PathBuf::from(env::var_os("OUT_DIR").expect("Failed to read OUT_DIR"));
     File::create(out.join("teensy3-sys.ld"))
-        .unwrap()
+        .expect("Failed to create linkerfile!")
         .write_all(linker_bytes)
-        .unwrap();
+        .expect("Failed to write to linkerfile");
     println!("cargo:rustc-link-search={}", out.display());
 }
 
@@ -122,39 +115,39 @@ fn main() {
 
     // TODO: Assert `teensy3-sys.ld` exists
 
-    let source_dirs = [
-        "cores/teensy3",
-        "SPI",
-        "Wire",
-    ];
+    let source_dirs = ["cores/teensy3", "SPI", "Wire"];
 
     let c_compiler = "arm-none-eabi-gcc";
     let cpp_compiler = "arm-none-eabi-g++";
     let archive = "arm-none-eabi-ar";
 
-    let crate_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
-    let out_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
+    let crate_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").expect("Failed to find Cargo Manifest Dir"));
+    let out_dir = PathBuf::from(env::var_os("OUT_DIR").expect("Failed to read OUT_DIR"));
 
     let includes = source_dirs.iter().flat_map(|dir| vec!["-I", dir]).collect::<Vec<_>>();
     let mut objs = Vec::new();
 
     for source_dir in &source_dirs {
-        for entry in read_dir(crate_dir.join(source_dir)).unwrap() {
-            let path = entry.unwrap().path();
+        for entry in read_dir(crate_dir.join(source_dir)).expect("Failed to read dir") {
+            let path = entry.expect("Bad Path").path();
             let (compiler, extra_args) = match path.extension() {
                 Some(e) if e == "c" => (c_compiler, &flags.c_args[..]),
                 Some(e) if e == "cpp" => (cpp_compiler, &flags.cpp_args[..]),
                 _ => continue,
             };
-            let obj = path.with_extension("o").file_name().unwrap().to_owned();
-            check(
-                Command::new(compiler)
-                .args(&flags.compiler_args)
-                .args(extra_args)
-                .args(&includes)
-                .arg("-c").arg(Path::new(source_dir).join(path.file_name().unwrap()))
-                .arg("-o").arg(out_dir.join(&obj))
-            );
+            let obj = path.with_extension("o")
+                .file_name()
+                .expect("Failed to create file name")
+                .to_owned();
+            check(Command::new(compiler)
+                      .args(&flags.compiler_args)
+                      .args(extra_args)
+                      .args(&includes)
+                      .arg("-c")
+                      .arg(Path::new(source_dir)
+                               .join(path.file_name().expect("Failed to get file name")))
+                      .arg("-o")
+                      .arg(out_dir.join(&obj)));
             objs.push(obj);
         }
     }
@@ -166,24 +159,26 @@ fn main() {
     //   "-C", "link-arg=-lc",
     //   "-C", "link-arg=-lgcc",
 
-    check(
-        Command::new(archive)
-        .arg("crus")
-        .arg(out_dir.join("libteensyduino.a"))
-        .args(objs)
-        .current_dir(&out_dir)
-    );
-    println!("cargo:rustc-link-search=native={}", out_dir.to_str().unwrap());
+    check(Command::new(archive)
+              .arg("crus")
+              .arg(out_dir.join("libteensyduino.a"))
+              .args(objs)
+              .current_dir(&out_dir));
+    println!("cargo:rustc-link-search=native={}",
+             out_dir.to_str().expect("Failed to render out_dir to str"));
     println!("cargo:rustc-link-lib=static=teensyduino");
 
     // FIXME (https://github.com/jamesmunns/teensy3-rs/issues/17) Remove this hack
     let modified_wprogram_h = out_dir.join("WProgram.h");
     let mut wprogram_h = String::new();
-    File::open("cores/teensy3/WProgram.h").unwrap().read_to_string(&mut wprogram_h).unwrap();
-    File::create(&modified_wprogram_h).unwrap().write_all(wprogram_h.replace(
-        "int32_t random(void);",
-        "long random(void);",
-    ).as_bytes()).unwrap();
+    File::open("cores/teensy3/WProgram.h")
+        .expect("failed to open header")
+        .read_to_string(&mut wprogram_h)
+        .expect("failed to read program header");
+    File::create(&modified_wprogram_h)
+        .expect("failed to create program header")
+        .write_all(wprogram_h.replace("int32_t random(void);", "long random(void);").as_bytes())
+        .expect("failed to write to program header");
 
     bindgen::Builder::default()
         .no_unstable_rust()
@@ -194,12 +189,12 @@ fn main() {
         .clang_args(&flags.compiler_args)
         .clang_args(&includes)
         .clang_arg("-include")
-        .clang_arg(modified_wprogram_h.to_str().unwrap())
+        .clang_arg(modified_wprogram_h.to_str().expect("cant string program header"))
         .clang_arg("-x")
         .clang_arg("c++")
         .clang_arg("-std=gnu++0x")
         .clang_arg("-target")
-        .clang_arg(env::var("TARGET").unwrap())
+        .clang_arg(env::var("TARGET").expect("Why isn't Target set?"))
         .generate()
         .expect("error when generating bindings")
         .write_to_file(out_dir.join("bindings.rs"))
