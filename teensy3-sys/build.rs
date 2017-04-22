@@ -74,7 +74,6 @@ fn flag_sanity_check() -> Result<CompilerOpts, ()> {
         }
         // Teensy 3.5
         (false, false, false, true, false) => {
-            // Teensy 3.5
             generate_linkerfile(include_bytes!("cores/teensy3/mk64fx512.ld"));
 
             base_args.compiler_args.append(&mut vec![
@@ -87,6 +86,23 @@ fn flag_sanity_check() -> Result<CompilerOpts, ()> {
 
                 "-D__MK64FX512__",
                 "-DF_CPU=120000000",
+            ]);
+            Ok(base_args)
+        }
+        // Teensy 3.6
+        (false, false, false, false, true) => {
+            generate_linkerfile(include_bytes!("cores/teensy3/mk66fx1m0.ld"));
+
+            base_args.compiler_args.append(&mut vec![
+                "-mcpu=cortex-m4",
+
+                // Hard float, yo!
+                //   TODO: add a flag for this
+                "-mfloat-abi=hard",
+                "-mfpu=fpv4-sp-d16",
+
+                "-D__MK66FX1M0__",
+                "-DF_CPU=180000000",
             ]);
             Ok(base_args)
         }
@@ -112,6 +128,7 @@ fn main() {
     let flags = flag_sanity_check().expect("Bad Feature Flags!");
 
     // TODO: Assert `teensy3-sys.ld` exists
+    // TODO: Assert `eabi` and `eabihf` targets make sense wrt other flag settings
 
     let source_dirs = ["cores/teensy3", "SPI", "Wire"];
 
