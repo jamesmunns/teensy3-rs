@@ -15,7 +15,7 @@ pub enum Mode {
     Mode0,
     Mode1,
     Mode2,
-    Mode3
+    Mode3,
 }
 
 /// Settings structure for the SPI peripheral
@@ -35,7 +35,7 @@ impl SpiSettings {
             max_clock: max_clock,
             order: order,
             mode: mode,
-            ctar: 0
+            ctar: 0,
         };
         new.ctar = new.render();
         new
@@ -69,18 +69,16 @@ impl SpiSettings {
         //     c |= SPI_CTAR_CPOL;
         // }
         match self.mode {
-            Mode::Mode0 => {},
+            Mode::Mode0 => {}
             Mode::Mode1 => {
                 c |= 0x02000000;
                 t = (t & 0xFFFF0FFF) | ((t & 0xF000) >> 4);
-            },
-            Mode::Mode2 => {
-                c |= 0x04000000
-            },
+            }
+            Mode::Mode2 => c |= 0x04000000,
             Mode::Mode3 => {
                 c |= 0x06000000;
                 t = (t & 0xFFFF0FFF) | ((t & 0xF000) >> 4);
-            },
+            }
         }
 
         c | t
@@ -102,9 +100,7 @@ impl Spi {
     /// Begin a single SPI data transaction
     pub fn begin_transaction(&self, settings: &SpiSettings) {
         unsafe {
-            SPIClass::beginTransaction(bindings::SPISettings{
-                ctar: settings.ctar,
-            });
+            SPIClass::beginTransaction(bindings::SPISettings { ctar: settings.ctar });
         }
     }
 
@@ -120,9 +116,7 @@ impl Spi {
     /// TODO: Improve once https://github.com/rust-lang/rfcs/issues/1038 lands
     pub fn transfer_replace(&self, data: &mut [u8]) {
         for mut byte in data.iter_mut() {
-            *byte = unsafe {
-                SPIClass::transfer(*byte)
-            }
+            *byte = unsafe { SPIClass::transfer(*byte) }
         }
     }
 }
