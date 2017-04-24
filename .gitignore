@@ -6,4 +6,4 @@
 **/*.a
 **/Cargo.lock
 **/*.bk
-
+**/*.swp

@@ -20,7 +20,6 @@ static COMMON_COMPILER_ARGS: &'static [&'static str] = &[
     "-DTEENSYDUINO=121",
     "-g",  // TODO:
     "-Os", // TODO: Debug/Release split
-    "-fsingle-precision-constant",
 ];
 
 static COMMON_C_ARGS: &'static [&'static str] = &[];
