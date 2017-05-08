@@ -26,6 +26,8 @@ To use this crate, please see [this demo repo](https://github.com/jamesmunns/tee
 * [Japaric's Xargo Tool](https://github.com/japaric/xargo) - used to cross compile libcore
 * A somewhat current arm-none-eabi-gcc toolchain.
 * Clang, see [rust-bindgen’s requirements](https://github.com/servo/rust-bindgen#requirements).
+* [teensy-loader-cli](https://www.pjrc.com/teensy/loader_cli.html)
+  for flashing your program onto hardware.
 
 ## Thanks, Citiations
 
