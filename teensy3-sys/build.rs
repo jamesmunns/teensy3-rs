@@ -1,120 +1,260 @@
 extern crate bindgen;
+extern crate gcc;
 
 use std::env;
-use std::fs::{File, read_dir};
+use std::fs::{self, File};
+use std::ffi::OsStr;
 use std::io::{Read, Write};
-use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::path::PathBuf;
 
-fn main() {
-    let source_dirs = [
-        "cores/teensy3",
-        "SPI",
-        "Wire",
+static COMPILER_FLAGS: &[&str] = &[
+    "-mthumb",
+    "-mcpu=cortex-m4",
+    "-DLAYOUT_US_ENGLISH",
+    "-DUSB_SERIAL",
+];
+
+static CPP_FLAGS: &[&str] = &[
+    "-std=gnu++14",
+    "-felide-constructors",
+    // "-fno-exceptions",
+    "-fno-rtti",
+    "-fkeep-inline-functions",
+];
+
+struct Config {
+    mcu: &'static str,
+    cpu: &'static str,
+    compiler_flags: Vec<&'static str>,
+}
+
+fn get_config() -> Config {
+    let features = vec![
+        cfg!(feature = "teensy_3_0"),
+        cfg!(feature = "teensy_3_1"),
+        cfg!(feature = "teensy_3_2"),
+        cfg!(feature = "teensy_3_5"),
+        cfg!(feature = "teensy_3_6"),
     ];
 
-    let c_compiler = "arm-none-eabi-gcc";
-    let cpp_compiler = "arm-none-eabi-g++";
-    let archive = "arm-none-eabi-ar";
-
-    // Both C and C++
-    let compiler_args = [
-        "-mthumb",
-        "-mcpu=cortex-m4",
-        "-D__MK20DX256__",
-        "-DF_CPU=48000000",
-
-        "-DUSB_SERIAL",
-        "-DLAYOUT_US_ENGLISH",
-        "-DTEENSYDUINO=121",
-        "-g",
-        "-Os",
-    ];
-
-    // C only
-    let c_args = [
-    ];
-
-    // C++ only
-    let cpp_args = [
-        "-std=gnu++0x",
-        "-felide-constructors",
-        "-fno-exceptions",
-        "-fno-rtti",
-        "-fkeep-inline-functions",
-    ];
-
-    let crate_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
-    let out_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
-
-    let includes = source_dirs.iter().flat_map(|dir| vec!["-I", dir]).collect::<Vec<_>>();
-    let mut objs = Vec::new();
-
-    for source_dir in &source_dirs {
-        for entry in read_dir(crate_dir.join(source_dir)).unwrap() {
-            let path = entry.unwrap().path();
-            let (compiler, extra_args) = match path.extension() {
-                Some(e) if e == "c" => (c_compiler, &c_args[..]),
-                Some(e) if e == "cpp" => (cpp_compiler, &cpp_args[..]),
-                _ => continue,
-            };
-            let obj = path.with_extension("o").file_name().unwrap().to_owned();
-            check(
-                Command::new(compiler)
-                .args(&compiler_args)
-                .args(extra_args)
-                .args(&includes)
-                .arg("-c").arg(Path::new(source_dir).join(path.file_name().unwrap()))
-                .arg("-o").arg(out_dir.join(&obj))
-            );
-            objs.push(obj);
-        }
+    if features.iter().filter(|&f| *f).count() != 1 {
+        panic!("Bad features!");
     }
-    check(
-        Command::new(archive)
-        .arg("crus")
-        .arg(out_dir.join("libteensyduino.a"))
-        .args(objs)
-        .current_dir(&out_dir)
-    );
-    println!("cargo:rustc-link-search=native={}", out_dir.to_str().unwrap());
-    println!("cargo:rustc-link-lib=static=teensyduino");
+
+    if cfg!(feature = "teensy_3_0") {
+        Config {
+            mcu: "MK20DX128",
+            cpu: "48000000",
+            compiler_flags: vec![],
+        }
+    } else if cfg!(feature = "teensy_3_1") || cfg!(feature = "teensy_3_2") {
+        Config {
+            mcu: "MK20DX256",
+            cpu: "48000000",
+            compiler_flags: vec![],
+        }
+    } else if cfg!(feature = "teensy_3_5") {
+        Config {
+            mcu: "MK64FX512",
+            cpu: "120000000",
+            compiler_flags: vec!["-mfloat-abi=hard", "-mfpu=fpv4-sp-d16"],
+        }
+    } else if cfg!(feature = "teensy_3_5") {
+        Config {
+            mcu: "MK66FX1M0",
+            cpu: "180000000",
+            compiler_flags: vec!["-mfloat-abi=hard", "-mfpu=fpv4-sp-d16"],
+        }
+    } else {
+        panic!("uh oh");
+    }
+}
+
+fn src_files(path: &PathBuf) -> (Vec<PathBuf>, Vec<PathBuf>) {
+    let ignore_files = vec![
+        Some(OsStr::new("new.cpp")), // so we can avoid -fno-exceptions
+    ];
+
+    let (c_ext, cpp_ext) = (Some(OsStr::new("c")), Some(OsStr::new("cpp")));
+
+    path.read_dir()
+        .expect("Unable to read teensy3 directory")
+        .filter_map(|entry| {
+            let entry = entry.expect("Unable to read a file from teensy3 directory");
+
+            let path = entry.path();
+
+            // Ignore directories
+            if path.is_dir() {
+                return None;
+            }
+
+            // Ignore Files
+            if ignore_files.contains(&path.file_name()) {
+                return None;
+            }
+
+            // We only care about .c and .cpp
+            let ext = path.extension();
+            if ext == c_ext || ext == cpp_ext {
+                Some(path.clone())
+            } else {
+                None
+            }
+        })
+        .partition(|ref path| path.extension() == c_ext)
+}
+
+fn first_dir(path: PathBuf) -> PathBuf {
+    path.read_dir()
+        .expect("Unable to read directory")
+        .next()
+        .expect("Expected a directory")
+        .expect("Expected a directory")
+        .path()
+}
+
+fn compile(config: &Config) {
+    let teensy3 = ["cores", "teensy3"].iter().collect();
+
+    let (c_files, cpp_files) = src_files(&teensy3);
+
+    let mut builder = gcc::Build::new();
+
+    // Shared Builder
+    builder
+        .archiver("arm/bin/arm-none-eabi-ar")
+        .include(&teensy3)
+        .opt_level_str("s")
+        .pic(false)
+        .warnings(false)
+        .define(&format!("__{}__", config.mcu), None)
+        .define("F_CPU", config.cpu);
+
+    for flag in COMPILER_FLAGS {
+        builder.flag(flag);
+    }
+
+    for flag in &config.compiler_flags {
+        builder.flag(flag);
+    }
+
+    // Compile C Files
+    builder
+        .clone()
+        .compiler("arm/bin/arm-none-eabi-gcc")
+        .cpp(false)
+        .files(c_files)
+        .compile("libteensyduino_c");
+
+    // Compile C++ Files
+    let mut cpp = builder.clone();
+
+    for flag in CPP_FLAGS {
+        cpp.flag(flag);
+    }
+
+    cpp.compiler("arm/bin/arm-none-eabi-g++")
+        .cpp(true)
+        .define("NEW_H", None) // Ignore new.h, to avoid -fno-exceptions
+        .files(cpp_files)
+        .compile("libteensyduino_cpp");
+}
+
+fn generate_bindings(config: &Config) {
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     // FIXME (https://github.com/jamesmunns/teensy3-rs/issues/17) Remove this hack
     let modified_wprogram_h = out_dir.join("WProgram.h");
     let mut wprogram_h = String::new();
-    File::open("cores/teensy3/WProgram.h").unwrap().read_to_string(&mut wprogram_h).unwrap();
-    File::create(&modified_wprogram_h).unwrap().write_all(wprogram_h.replace(
-        "int32_t random(void);",
-        "long random(void);",
-    ).as_bytes()).unwrap();
+    File::open("cores/teensy3/WProgram.h")
+        .expect("failed to open header")
+        .read_to_string(&mut wprogram_h)
+        .expect("failed to read program header");
+    File::create(&modified_wprogram_h)
+        .expect("failed to create program header")
+        .write_all(
+            wprogram_h
+                .replace("int32_t random(void);", "long random(void);")
+                .as_bytes(),
+        )
+        .expect("failed to write to program header");
 
-    bindgen::Builder::default()
-        .no_unstable_rust()
-        .use_core()
+    let mut flags: Vec<String> = CPP_FLAGS
+        .iter()
+        .chain(COMPILER_FLAGS.iter())
+        .chain(config.compiler_flags.iter())
+        .map(|&flag| String::from(flag))
+        .collect();
+
+    flags.push(format!("-D__{}__", config.mcu));
+    flags.push(format!("-DF_CPU={}", config.cpu));
+
+    flags.push(String::from("-D__GNUCLIKE_BUILTIN_VARARGS")); // Fix for duplicate __va_list
+
+    // Include Paths
+    // -Iarm/arm-none-eabi/include/c++/*/arm-none-eabi
+    // -Iarm/arm-none-eabi/include/c++/*
+    // -Iarm/lib/gcc/arm-none-eabi/*/include
+    // -Iarm/arm-none-eabi/include
+    // -Icores/teensy
+
+    let p1 = ["arm", "arm-none-eabi", "include"].iter().collect();
+    let p2 = first_dir(["arm", "lib", "gcc", "arm-none-eabi"].iter().collect());
+    let p3 = first_dir(["arm", "arm-none-eabi", "include", "c++"].iter().collect());
+
+    let includes: Vec<String> = vec![
+        p3.join("arm-none-eabi"),
+        p3,
+        p2.join("include"),
+        p1,
+        ["cores", "teensy3"].iter().collect(),
+    ].iter()
+        .map(|path| format!("-I{}", path.to_str().unwrap()))
+        .collect();
+
+    let bindings = bindgen::Builder::default()
+        .header("cores/teensy3/Arduino.h")
         .generate_inline_functions(true)
-        .header("bindings.h")
+        .use_core()
+        .blacklist_type("__cxxabiv1")
+        .blacklist_type("__gnu_cxx")
+        .blacklist_type("std")
         .ctypes_prefix("c_types")
-        .clang_args(&compiler_args)
+        .clang_args(&flags)
         .clang_args(&includes)
+        .clang_arg("-xc++")
+        .clang_arg(format!("--target={}", env::var("TARGET").unwrap()))
         .clang_arg("-include")
         .clang_arg(modified_wprogram_h.to_str().unwrap())
-        .clang_arg("-x")
-        .clang_arg("c++")
-        .clang_arg("-std=gnu++0x")
-        .clang_arg("-target")
-        .clang_arg(env::var("TARGET").unwrap())
         .generate()
-        .expect("error when generating bindings")
+        .expect("Unable to generate bindings")
         .write_to_file(out_dir.join("bindings.rs"))
-        .expect("error when writing bindings");
-
+        .expect("Couldn't write bindings!");
 }
 
-fn check(command: &mut Command) {
-    match command.status() {
-        Ok(ref status) if status.success() => {}
-        Ok(ref status) => panic!("command `{:?}` exited with {}.", command, status),
-        Err(ref error) => panic!("could not start command `{:?}`: {}.", command, error),
-    }
+fn main() {
+    let config = get_config();
+
+    compile(&config);
+
+    generate_bindings(&config);
+
+    // Put the linker script somewhere the top crate can find it
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    fs::copy(
+        [
+            "cores",
+            "teensy3",
+            &format!("{}.ld", config.mcu.to_lowercase()),
+        ].iter()
+            .collect::<PathBuf>(),
+        out_dir.join("teensy3-sys.ld"),
+    ).expect("Failed to write to linkerfile");
+    println!("cargo:rustc-link-search={}", out_dir.display());
+
+    println!("cargo:rustc-link-lib=m");
+    println!("cargo:rustc-link-lib=nosys");
+    println!("cargo:rustc-link-lib=c");
+    println!("cargo:rustc-link-lib=gcc");
 }
