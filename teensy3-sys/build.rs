@@ -123,7 +123,7 @@ fn compile(config: &Config) {
 
     // Shared Builder
     builder
-        .archiver("arm/bin/arm-none-eabi-ar")
+        .archiver("arm-none-eabi-ar")
         .include(&teensy3)
         .opt_level_str("s")
         .pic(false)
@@ -142,7 +142,7 @@ fn compile(config: &Config) {
     // Compile C Files
     builder
         .clone()
-        .compiler("arm/bin/arm-none-eabi-gcc")
+        .compiler("arm-none-eabi-gcc")
         .cpp(false)
         .files(c_files)
         .compile("libteensyduino_c");
@@ -154,7 +154,7 @@ fn compile(config: &Config) {
         cpp.flag(flag);
     }
 
-    cpp.compiler("arm/bin/arm-none-eabi-g++")
+    cpp.compiler("arm-none-eabi-g++")
         .cpp(true)
         .define("NEW_H", None) // Ignore new.h, to avoid -fno-exceptions
         .files(cpp_files)
@@ -192,24 +192,8 @@ fn generate_bindings(config: &Config) {
 
     flags.push(String::from("-D__GNUCLIKE_BUILTIN_VARARGS")); // Fix for duplicate __va_list
 
-    // Include Paths
-    // -Iarm/arm-none-eabi/include/c++/*/arm-none-eabi
-    // -Iarm/arm-none-eabi/include/c++/*
-    // -Iarm/lib/gcc/arm-none-eabi/*/include
-    // -Iarm/arm-none-eabi/include
-    // -Icores/teensy
-
-    let p1 = ["arm", "arm-none-eabi", "include"].iter().collect();
-    let p2 = first_dir(["arm", "lib", "gcc", "arm-none-eabi"].iter().collect());
-    let p3 = first_dir(["arm", "arm-none-eabi", "include", "c++"].iter().collect());
-
-    let includes: Vec<String> = vec![
-        p3.join("arm-none-eabi"),
-        p3,
-        p2.join("include"),
-        p1,
-        ["cores", "teensy3"].iter().collect(),
-    ].iter()
+    let includes: Vec<String> = vec![["cores", "teensy3"].iter().collect()]
+        .iter()
         .map(|path| format!("-I{}", path.to_str().unwrap()))
         .collect();
 
