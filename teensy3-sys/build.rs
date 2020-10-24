@@ -59,7 +59,7 @@ fn get_config() -> Config {
             cpu: "120000000",
             compiler_flags: vec!["-mfloat-abi=hard", "-mfpu=fpv4-sp-d16"],
         }
-    } else if cfg!(feature = "teensy_3_5") {
+    } else if cfg!(feature = "teensy_3_6") {
         Config {
             mcu: "MK66FX1M0",
             cpu: "180000000",
