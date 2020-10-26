@@ -19,5 +19,6 @@ teensy_3_5 = []
 teensy_3_6 = []
 
 [build-dependencies]
-bindgen = "0.33.1"
-gcc = "0.3.54"
+bindgen = "0.55.1"
+cc = "1.0.61"
+

@@ -9,3 +9,10 @@ documentation = "https://docs.rs/crate/teensy3/"
 
 [dependencies]
 teensy3-sys = {version = "0.2", path = "../teensy3-sys"}
+
+[features]  # Choose one
+teensy_3_0 = ["teensy3-sys/teensy_3_0"]
+teensy_3_1 = ["teensy3-sys/teensy_3_1"]
+teensy_3_2 = ["teensy3-sys/teensy_3_2"]
+teensy_3_5 = ["teensy3-sys/teensy_3_5"]
+teensy_3_6 = ["teensy3-sys/teensy_3_6"]
