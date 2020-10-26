@@ -88,40 +88,45 @@ impl SpiSettings {
 }
 
 #[derive(Copy, Clone)]
-pub struct Spi;
-use bindings::SPIClass;
+pub struct Spi(bindings::SPIClass);
 
 impl Spi {
-    /// Initialize the SPI peripheral
-    pub fn begin(&self) {
+    pub fn new(myport: usize, myhardware: usize) -> Spi {
         unsafe {
-            SPIClass::begin();
+            Spi(bindings::SPIClass::new(myport, myhardware))  // What are those input addresses?
+        }
+    }
+
+    /// Initialize the SPI peripheral
+    pub fn begin(&mut self) {
+        unsafe {
+            self.0.begin();
         }
     }
 
     /// Begin a single SPI data transaction
-    pub fn begin_transaction(&self, settings: &SpiSettings) {
+    pub fn begin_transaction(&mut self, settings: &SpiSettings) {
         unsafe {
-            SPIClass::beginTransaction(bindings::SPISettings{
+            self.0.beginTransaction(bindings::SPISettings{
                 ctar: settings.ctar,
             });
         }
     }
 
     /// Finalize a SPI data transaction
-    pub fn end_transaction(&self) {
+    pub fn end_transaction(&mut self) {
         unsafe {
-            SPIClass::endTransaction();
+            self.0.endTransaction();
         }
     }
 
     /// Send N bytes, replacing each input byte with the associated output byte
     ///
     /// TODO: Improve once https://github.com/rust-lang/rfcs/issues/1038 lands
-    pub fn transfer_replace(&self, data: &mut [u8]) {
+    pub fn transfer_replace(&mut self, data: &mut [u8]) {
         for mut byte in data.iter_mut() {
             *byte = unsafe {
-                SPIClass::transfer(*byte)
+                self.0.transfer(*byte)
             }
         }
     }

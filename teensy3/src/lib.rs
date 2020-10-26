@@ -17,11 +17,15 @@ pub mod spi;
 pub mod util;
 
 /// Processor panic
-#[lang = "panic_fmt"]
-pub extern fn rust_begin_panic(msg: core::fmt::Arguments, file: &'static str, line: u32) -> ! {
-    println!("{:?}:{:?} - {:?}\n\r", file, line, msg);
-    loop {}
+#[panic_handler]
+fn teensy_panic(_pi: &core::panic::PanicInfo) -> ! {
+    loop {};
 }
+// #[lang = "panic_fmt"]
+// pub extern fn rust_begin_panic(msg: core::fmt::Arguments, file: &'static str, line: u32) -> ! {
+//     println!("{:?}:{:?} - {:?}\n\r", file, line, msg);
+//     loop {}
+// }
 
 /// ?
 #[lang = "eh_personality"]
