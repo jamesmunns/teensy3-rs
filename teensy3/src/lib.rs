@@ -18,7 +18,12 @@ pub mod util;
 
 /// Processor panic
 #[panic_handler]
-fn teensy_panic(_pi: &core::panic::PanicInfo) -> ! {
+fn teensy_panic(pi: &core::panic::PanicInfo) -> ! {
+    if let Some(s) = pi.payload().downcast_ref::<&str>() {
+        println!("Panic occured {:?}", s);
+    } else {
+        println!("Panic occured");
+    }
     loop {};
 }
 // #[lang = "panic_fmt"]
