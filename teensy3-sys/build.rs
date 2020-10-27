@@ -175,7 +175,7 @@ fn compile(config: &Config) {
     // Compile C Files
     c.compiler("arm-none-eabi-gcc")
         .cpp(false)
-        //.no_default_flags(true)
+        //.no_default_flags(true)  // Default flags seem to do something that fixes linker errrors
         .files(c_files)
         .compile("libteensyduino_c");
     // Compile C++ Files

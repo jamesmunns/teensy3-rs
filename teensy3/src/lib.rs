@@ -24,7 +24,16 @@ fn teensy_panic(pi: &core::panic::PanicInfo) -> ! {
     } else {
         println!("Panic occured");
     }
-    loop {};
+    for _ in 0..3 {
+    }
+    loop {
+        unsafe {
+            bindings::digitalWrite(13, bindings::HIGH as u8);
+            bindings::delay(100);
+            bindings::digitalWrite(13, bindings::LOW as u8);
+            bindings::delay(100);
+        }
+    };
 }
 // #[lang = "panic_fmt"]
 // pub extern fn rust_begin_panic(msg: core::fmt::Arguments, file: &'static str, line: u32) -> ! {
