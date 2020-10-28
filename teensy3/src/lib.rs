@@ -19,13 +19,7 @@ pub mod util;
 /// Processor panic
 #[panic_handler]
 fn teensy_panic(pi: &core::panic::PanicInfo) -> ! {
-    if let Some(s) = pi.payload().downcast_ref::<&str>() {
-        println!("Panic occured {:?}", s);
-    } else {
-        println!("Panic occured");
-    }
-    for _ in 0..3 {
-    }
+    println!("{}", pi);
     loop {
         unsafe {
             bindings::digitalWrite(13, bindings::HIGH as u8);
