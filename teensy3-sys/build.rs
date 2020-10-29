@@ -1,6 +1,6 @@
 extern crate bindgen;
 extern crate cc;
-//
+
 use std::env;
 use std::fs::{self, File};
 use std::ffi::OsStr;
@@ -12,10 +12,8 @@ use std::process::Command;
 static COMPILER_FLAGS: &[&str] = &[
     "-mthumb",
     "-mcpu=cortex-m4",
-    "-Os",
-    "-ffunction-sections",  // link-time garbage collection
-    "-fdata-sections",      // link-time garbage collection
-    //"-fshort-wchar",        // wide char is compiler dependent: force short one for gcc
+    "-ffunction-sections",  // unused function removal, use linker flag "link-arg=-Wl,--gc-sections
+    "-fdata-sections",      // unused data removal, use linker flag "link-arg=-Wl,--gc-sections
     "-DLAYOUT_US_ENGLISH",
     // You can enable different teensy features by changing following "-D____" flag.
     // For example, disable keyboard/mouse functionality by replacing it with "-DUSB_SERIAL".
@@ -48,12 +46,13 @@ struct Config {
     newlib_bits_path: PathBuf,
 }
 /// Get paths to compile
-fn get_src_paths() -> [PathBuf;3] {
-    // How on earth you make a globally accessible path in rust?!? Is it even possible?
+fn get_src_paths() -> [PathBuf;2] {
+    // How on earth you make a globally accessible Path in rust? Is it even possible?
+    // I'll make a function that returns a constant pathbuf then
     [
         PathBuf::from("cores/teensy3"),
         PathBuf::from("SPI"),
-        PathBuf::from("Wire"),
+        //PathBuf::from("Wire"),
     ]
 }
 
@@ -70,36 +69,78 @@ fn get_config() -> Config {
         panic!("Invalid features! Define one board for teensy3. E.g. add feature 'teensy_3_6'");
     }
 
-    let (mcu, cpu, compiler_flags) = if cfg!(feature = "teensy_3_0") {
-        ("MK20DX128", "48000000", vec![])
-    } else if cfg!(feature = "teensy_3_1") || cfg!(feature = "teensy_3_2") {
-        ("MK20DX256", "48000000", vec![])
-    } else if cfg!(feature = "teensy_3_5") {
-        // If you want to fight linker errors, you can try enabling hardware floats
-        // vec!["-mfloat-abi=hard", "-mfpu=fpv4-sp-d16"]
-        ("MK64FX512", "120000000", vec![])
-    } else if cfg!(feature = "teensy_3_6") {
-        // If you want to fight linker errors, you can try enabling hardware floats
-        // vec!["-mfloat-abi=hard", "-mfpu=fpv4-sp-d16"]
-        // Options for -mfloat-abi, and general terminology:
+    let target = std::env::var("TARGET").unwrap();
+    let fpu; // FPU: hardware based Floating Point Unit
+    let compiler_flags;
+    if &target == "thumbv7em-none-eabi" {
+        fpu = false;
+        compiler_flags = vec![];
+    } else if &target == "thumbv7em-none-eabihf" {
+        if cfg!(feature = "teensy_3_5") || cfg!(feature = "teensy_3_6") {
+            panic!("Hardware floating point not supported on this device. Use thumbv7em-none-eabi");
+        }
+        // Useful and general terminology: Options for -mfloat-abi are:
         //     soft: processor has no Floating Point Unit (FPU)
         //     hard: processor has FPU, floating point operations are hardware instructions.
         //     softfp: processor has FPU, but still uses soft calling convention
-        ("MK66FX1M0", "180000000", vec![])
+        fpu = true;
+        compiler_flags = vec![
+            "-mfloat-abi=hard",
+            "-mfpu=fpv4-sp-d16",
+        ]
     } else {
-        panic!("Uh oh");
+        panic!("Unknown target triple {}, use 'thumbv7em-none-eabi'", target);
+    };
+
+    let (mcu, cpu, ) = if cfg!(feature = "teensy_3_0") {
+        ("MK20DX128", "48000000")
+    } else if cfg!(feature = "teensy_3_1") || cfg!(feature = "teensy_3_2") {
+        ("MK20DX256", "48000000")
+    } else if cfg!(feature = "teensy_3_5") {
+        ("MK64FX512", "120000000")
+    } else if cfg!(feature = "teensy_3_6") {
+        ("MK66FX1M0", "180000000")
+    } else {
+        panic!("This panic is never thrown.");
     };
 
     // Find out newlib path, which is something like "/usr/include/newlib/c++/4.9.3"
     // Figure out version number by taking first item in directory
-    let mut entry_iter = fs::read_dir("/usr/include/newlib/c++/").unwrap();
+    let p = PathBuf::from("/usr/include/newlib/c++/");
+    if !p.is_dir() {
+        panic!("Newlib not found from {:?}. \nIt is either not installed or system is windows.", p)}
+    let mut entry_iter = fs::read_dir(p).unwrap();
     let first_entry = entry_iter.next().unwrap().unwrap();
     let newlib_path = first_entry.path();
 
-    let has_fpu = compiler_flags.contains(&"-mfloat-abi=hard");
-    let newlib_bits_path = match has_fpu {
-        true  => newlib_path.join("arm-none-eabi/armv7e-m/fpu"),
-        false => newlib_path.join("arm-none-eabi/armv7e-m"),
+    // newlib bits path is differs on diffenrent versions of newlib
+    let newlib_bits_path = match fpu {
+        true  => {
+            let v9 = newlib_path.join("arm-none-eabi/thumb/v7e-m+fp/hard/");
+            //let v4 = newlib_path.join("arm-none-eabi/armv7e-m/fpu/");
+            let v4 = newlib_path.join("arm-none-eabi/thumb/armv7-ar/fpu/vfpv3-d16/be/");
+            if v9.is_dir() {  // newlib version 8 path
+                v9
+            } else if v4.is_dir() {  // newlib version 4 path
+                v4
+            } else {
+                panic!("Newlib library path not found automatically. Please configure it manually \
+                in build.rs.")
+            }
+        },
+        false => {
+            let v9 = newlib_path.join("arm-none-eabi/thumb/v7e-m/nofp/");
+            //let v4 = newlib_path.join("arm-none-eabi/armv7e-m");
+            let v4 = newlib_path.join("arm-none-eabi/thumb/");
+            if v9.is_dir() {  // newlib version 8 path
+                v9
+            } else if v4.is_dir() {  // newlib version 4 path
+                v4
+            } else {
+                panic!("Newlib library path not found automatically. Please configure it manually \
+                in build.rs.")
+            }
+        },
     };
 
     return Config{mcu, cpu, compiler_flags, newlib_path, newlib_bits_path}
@@ -169,14 +210,9 @@ fn compile(config: &Config) {
         .define(&format!("__{}__", config.mcu), None)
         .define("F_CPU", config.cpu);
 
-    for flag in COMPILER_FLAGS {
+    for flag in COMPILER_FLAGS.iter().chain(&config.compiler_flags) {
         builder.flag(flag);
     }
-
-    for flag in &config.compiler_flags {
-        builder.flag(flag);
-    }
-
 
     let mut c = builder.clone();
     let mut cpp = builder.clone();
@@ -191,7 +227,7 @@ fn compile(config: &Config) {
     // Compile C Files
     c.compiler("arm-none-eabi-gcc")
         .cpp(false)
-        .no_default_flags(true)  // Default flags seem to do something that fixes linker errrors
+        .no_default_flags(true)
         .files(c_files)
         .compile("libteensyduino_c");
     // Compile C++ Files
@@ -224,9 +260,10 @@ fn generate_bindings(config: &Config) {
         )
         .expect("failed to write to program header");
 
-    let mut flags: Vec<String> = CPP_FLAGS
+    let mut flags: Vec<String> = COMPILER_FLAGS
         .iter()
-        .chain(COMPILER_FLAGS.iter())
+        .chain(C_FLAGS.iter())
+        .chain(CPP_FLAGS.iter())
         .chain(config.compiler_flags.iter())
         .map(|&flag| String::from(flag))
         .collect();
@@ -254,13 +291,18 @@ fn generate_bindings(config: &Config) {
         .ctypes_prefix("c_types")
         .clang_args(&flags)
         .clang_args(&includes)
+        .clang_arg("-v")
+        .clang_arg("-H")
         .clang_arg("-xc++")
         .clang_arg(format!("--target={}", env::var("TARGET").unwrap()))
-        // I have no knowledge what is proper way of telling bindgen about these paths
+        .clang_arg("-I/usr/include/newlib/")
         .clang_arg(format!("-I{}", config.newlib_path.to_str().unwrap()))
         .clang_arg(format!("-I{}", config.newlib_bits_path.to_str().unwrap()))
         .clang_arg("-include")
         .clang_arg(modified_wprogram_h.to_str().unwrap())
+        .clang_arg("-fretain-comments-from-system-headers")  // It does not still generate comments?
+        .generate_comments(true)  // It does not still generate comments?
+        //.clang_arg("-L/usr/include/newlib/c++/9.2.1/stdlib.h")
         .generate()
         .expect("Unable to generate bindings")
         .write_to_file(out_dir.join("bindings.rs"))
@@ -268,11 +310,14 @@ fn generate_bindings(config: &Config) {
 }
 
 fn main() {
-    // Testing
+    // Testing, can be removed
     if false {  // Figure out what's inside docker container
+        // execute arbitrary shell commands
         let commands = [
             "find /usr/ -name 'type_traits'",
-            "find /usr/ -name 'c++config.h'"
+            "find /usr/ -name 'c++config.h'",
+            "find /usr/ -name 'stdlib.h'",
+            "find /usr/ -name 'cstdlib'",
         ];
         for (i, &command) in commands.iter().enumerate() {
             let output = Command::new("sh")
@@ -283,7 +328,9 @@ fn main() {
             let out_string = String::from_utf8_lossy(output.stdout.as_slice()) ;
             println!("--{}--\n{}\n-----", i, out_string);
         }
-        panic!("Stop")
+        println!("Target: {}", std::env::var("TARGET").unwrap());
+        println!("PATH: {}", std::env::var("PATH").unwrap());
+        //panic!("Stop");
     }
 
     let config = get_config();
@@ -293,6 +340,7 @@ fn main() {
 
     generate_bindings(&config);
 
+
     // Take linker script from teensy libraries and put it somewhere the top crate can find it
     let mcu = config.mcu.to_lowercase();
     fs::copy(
@@ -301,11 +349,6 @@ fn main() {
     ).expect("Failed to write to linkerfile");
     println!("cargo:rustc-link-search={}", out_dir.display());  // grapped linker file
 
-    File::create(&out_dir.join("mcu_info.txt"))
-        .expect("failed to create cpu info file")
-        .write_all(mcu.as_bytes())
-        .expect("failed to write cpu info file");
+    println!("cargo:rerun-if-changed=build.rs");
+
 }
-// TODO what is proper way to pass libraries to bindgen?
-// TODO why --target disables visibility of some libraries?
-// TODO why defaul args for cc can not be disabled?
