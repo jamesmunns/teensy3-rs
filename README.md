@@ -1,5 +1,5 @@
 # Rust on Teensy3
-This repo contains rust binding generation for Teensy3's c/c++ libraries. Teensy3 is arduino-like ARM based microcontroller. Exposed bindings are raw, and they are directly generated with rust-bindgen. Compatible models are Teensy 3.0, 3.1, 3.2, 3.5, and 3.6. Tested only on Teensy 3.6. 
+This repo contains rust binding generation for Teensy3's c/c++ libraries. Teensy3 is arduino-like ARM based microcontroller. Exposed bindings are raw, and they are directly generated with rust-bindgen. Compatible Teensy models are 3.0, 3.1, 3.2, 3.5, and 3.6. Tested only on Teensy 3.6. 
 
 ## Notes about this fork
 This repo is fork of otaku's [teensy3-rs](https://github.com/otaku/teensy3-rs), which is fork of jamesmunns's [teensy3-rs](https://github.com/jamesmunns/teensy3-rs). The main changes in this fork are
