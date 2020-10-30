@@ -1,7 +1,7 @@
 [package]
 name = "teensy3-sys"
 version = "0.2.0"
-authors = ["Paul Stoffregen <paul@pjrc.com>", "Simon Sapin <simon.sapin@exyr.org>", "James Munns <james.munns@gmail.com>"]
+authors = ["Alpi Tolvanen <alpi.tolvanen@tutanota.com>", "Paul Stoffregen <paul@pjrc.com>", "Simon Sapin <simon.sapin@exyr.org>", "James Munns <james.munns@gmail.com>"]
 description = "Servo Bindgen generated bindings, and Teensyduino ASM/C/CPP/Linker components"
 license = "MIT/LGPL-2.1"
 repository = "https://github.com/jamesmunns/teensy3-rs"
