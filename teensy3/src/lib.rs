@@ -4,7 +4,7 @@
 //! Teensyduino libraries provided by the manufacturer
 
 #![no_std]
-#![feature(lang_items)]
+//#![feature(lang_items)]
 #![allow(dead_code)]
 
 /// Unsafe C++ Teensyduino bindings from the teensy3-sys crate
@@ -37,6 +37,6 @@ fn teensy_panic(pi: &core::panic::PanicInfo) -> ! {
     };
 }
 
-/// Something related to error unwinding
-#[lang = "eh_personality"]
-pub extern fn rust_eh_personality() {}
+///// Something related to error unwinding
+//#[lang = "eh_personality"]
+//pub extern fn rust_eh_personality() {}
