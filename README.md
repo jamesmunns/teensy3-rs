@@ -1,5 +1,5 @@
 # Rust on Teensy3
-This repo contains raw rust bindings to Teensy3's c/c++ core library, generated with rust-bindgen. Compatible with Teensy 3.0, 3.1, 3.2, 3.5, and 3.6. Tested on only 3.6.
+This repo contains rust binding generation for Teensy3's c/c++ libraries. Teensy3 is arduino-like ARM based microcontroller. Exposed bindings are raw, and they are directly generated with rust-bindgen. Compatible models are Teensy 3.0, 3.1, 3.2, 3.5, and 3.6. Tested only on Teensy 3.6. 
 
 ## Notes about this fork
 This repo is fork of otaku's [teensy3-rs](https://github.com/otaku/teensy3-rs), which is fork of jamesmunns's [teensy3-rs](https://github.com/jamesmunns/teensy3-rs). The main changes in this fork are
@@ -12,9 +12,9 @@ This repo is fork of otaku's [teensy3-rs](https://github.com/otaku/teensy3-rs), 
 
 
 ## Getting Started
-This crate is meant to be used with template project [teensy3-rs-demo](https://github.com/tolvanea/teensy3-rs-demo). Cross compiling is pain, so please use that template. It uses [cross](https://github.com/rust-embedded/cross) and runs cross-compilation in docker container, so correct all toolchain dependencies and libraries are automatically fetched. It *just works*. 
+This crate is meant to be used with template project [teensy3-rs-demo](https://github.com/tolvanea/teensy3-rs-demo). Cross compiling is pain, so please use that template. It uses [Cross](https://github.com/rust-embedded/cross) and therefore runs cross-compilation in docker container, so all toolchain dependencies and libraries are automatically fetched. It *just works*. 
 
-If you plan not to use that template, then be prepared to fight against c/c++ code compilation and binding generation. You should at least copy template's linker configurations from `.cargo/config`. The build script assumes that c standard libraries are found from conventional paths of linux environment. Without the docker environment, you probably need to configure all library paths manually in `build.rs`. Also, library paths varies between different versions.
+If you plan not to use that template, then be prepared to fight against c/c++ code compilation and binding generation. You should at least copy template's linker configurations from `.cargo/config`. The build script of this project assumes that c standard libraries are found from conventional paths of linux environment. Without the docker environment, you probably need to configure all library paths manually in `build.rs`. Also note that names of library paths varies between different versions.
 
 ## Package layout
 * `teensy3-sys` - This crate contains the C/C++ code and the Rust bindings against them. All items are generally unsafe, and not idiomatic rust. `teensy3-sys` is re-exported as `teensy3::bindings`.
