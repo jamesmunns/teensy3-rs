@@ -76,7 +76,7 @@ fn get_config() -> Config {
         fpu = false;
         compiler_flags = vec![];
     } else if &target == "thumbv7em-none-eabihf" {
-        if cfg!(feature = "teensy_3_5") || cfg!(feature = "teensy_3_6") {
+        if !(cfg!(feature = "teensy_3_5") || cfg!(feature = "teensy_3_6")) {
             panic!("Hardware floating point not supported on this device. Use thumbv7em-none-eabi");
         }
         // Useful and general terminology: Options for -mfloat-abi are:

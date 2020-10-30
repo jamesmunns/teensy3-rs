@@ -124,7 +124,7 @@ impl Spi {
     ///
     /// TODO: Improve once https://github.com/rust-lang/rfcs/issues/1038 lands
     pub fn transfer_replace(&mut self, data: &mut [u8]) {
-        for mut byte in data.iter_mut() {
+        for byte in data.iter_mut() {
             *byte = unsafe {
                 self.0.transfer(*byte)
             }

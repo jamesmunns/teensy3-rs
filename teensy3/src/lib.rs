@@ -16,25 +16,27 @@ pub mod serial;
 pub mod spi;
 pub mod util;
 
-/// Processor panic
+/// Processor panic: enter infinite loop. Blink monotonically and keep writing reason
+/// for panic every 10 seconds.
 #[panic_handler]
 fn teensy_panic(pi: &core::panic::PanicInfo) -> ! {
     println!("{}", pi);
     loop {
-        unsafe {
-            bindings::digitalWrite(13, bindings::HIGH as u8);
-            bindings::delay(100);
-            bindings::digitalWrite(13, bindings::LOW as u8);
-            bindings::delay(100);
+        // Keep writing the reason for panic over and over again
+        for _ in 0..50 {
+            unsafe {
+                bindings::digitalWrite(13, bindings::HIGH as u8);
+                bindings::delay(100);
+                bindings::digitalWrite(13, bindings::LOW as u8);
+                bindings::delay(100);
+            }
         }
+        println!("-------------------");
+        println!("-------------------");
+        println!("{}", pi);
     };
 }
-// #[lang = "panic_fmt"]
-// pub extern fn rust_begin_panic(msg: core::fmt::Arguments, file: &'static str, line: u32) -> ! {
-//     println!("{:?}:{:?} - {:?}\n\r", file, line, msg);
-//     loop {}
-// }
 
-/// ?
+/// Something related to error unwinding
 #[lang = "eh_personality"]
 pub extern fn rust_eh_personality() {}
