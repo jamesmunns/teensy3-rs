@@ -17,13 +17,14 @@ static COMPILER_FLAGS: &[&str] = &[
     "-DLAYOUT_US_ENGLISH",
     // You can enable different teensy features by changing following "-D____" flag.
     // For example, disable keyboard/mouse functionality by replacing it with "-DUSB_SERIAL".
-    // Here's full list of possibilities from cores/teensy3/usb_dec.h (not tested!)
+    // Here's full list of possibilities from cores/teensy3/usb_dec.h (I have not tested them)
     //     USB_SERIAL, USB_DUAL_SERIAL, USB_TRIPLE_SERIAL, USB_KEYBOARDONLY, USB_HID,
     //     USB_SERIAL_HID, USB_TOUCHSCREEN, USB_HID_TOUCHSCREEN, USB_MIDI, USB_MIDI4
     //     USB_MIDI16, USB_MIDI_SERIAL, USB_MIDI4_SERIAL, USB_MIDI16_SERIAL, USB_RAWHID
     //     USB_FLIGHTSIM, USB_FLIGHTSIM_JOYSTICK, USB_MTPDISK, USB_AUDIO,
     //     USB_MIDI_AUDIO_SERIAL, USB_MIDI16_AUDIO_SERIAL, USB_EVERYTHING
-    "-DUSB_SERIAL_HID",  // usb serial and hid functionality (i.e. print output & mouse/keyboard)
+    "-DUSB_SERIAL",      // usb serial (i.e. print output to computer)
+    //"-DUSB_SERIAL_HID",  // usb serial + mouse/keyboard
     "-DTEENSYDUINO",
 ];
 
