@@ -4,13 +4,13 @@ This repo generates rust binding for Teensy3's c/c++ libraries. Teensy3 is ardui
 ## Notes about this fork
 This repo is fork of otaku's [teensy3-rs](https://github.com/otaku/teensy3-rs), which is fork of jamesmunns's [teensy3-rs](https://github.com/jamesmunns/teensy3-rs). The main changes in this fork are
 * Continuing previous work and getting it all to work on docker 
-* Finishing up otaku's work on supporting all models 3.0, 3.1, 3.2, 3.5, and 3.6
-* Hardware floating point support is now available for 3.5 and 3.6
+* Continuing otaku's work on supporting all models 3.0, 3.1, 3.2, 3.5, and 3.6
 * Updated teensy3 libraries and updated rust 1.47 compatibility
+* Hardware floating point support is now available for 3.5 and 3.6
 
 
 ## Getting Started
-This crate is meant to be used with template project [teensy3-rs-demo](https://github.com/tolvanea/teensy3-rs-demo). Please use that template, because there is high change error with c/c++ source code compilation, binding generation, and cross compilation. The template uses [Cross](https://github.com/rust-embedded/cross) insted of Cargo, and therefore runs cross-compilation in docker container, so correct toolchain dependencies and libraries are automatically fetched. It *just works*. 
+This crate is meant to be used with template project [teensy3-rs-demo](https://github.com/tolvanea/teensy3-rs-demo). Please use that template, because there is high change of error with c/c++ source code compilation, binding generation, and cross compilation. The template uses [Cross](https://github.com/rust-embedded/cross) instead of Cargo. and therefore runs cross-compilation in docker container. With it correct toolchain dependencies and libraries are automatically fetched. It *just works*. 
 
 If you plan not to use that template, then be prepared to fight against c/c++ code compilation and binding generation. You should at least copy the template's linker configurations from `.cargo/config`. The build script of this current crate assumes that c standard libraries are found from conventional paths of linux environment. Without the docker environment, you probably need to configure library paths manually in `build.rs`. Different versions of libraries tend to have different paths, which is one reason why docker is used.
 

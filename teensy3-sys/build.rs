@@ -109,10 +109,15 @@ fn get_config() -> Config {
     // Figure out version number by taking first item in directory
     let p = PathBuf::from("/usr/include/newlib/c++/");
     if !p.is_dir() {
-        panic!("Newlib not found from {:?}. \nIt is either not installed or system is windows.", p)}
-    let mut entry_iter = fs::read_dir(p).unwrap();
-    let first_entry = entry_iter.next().unwrap().unwrap();
-    let newlib_path = first_entry.path();
+        panic!("Newlib not found from {:?}. \n\
+        Possible cause is that you are not using docker and:\n\
+        - newlib is not installed\n\
+        - you are using some other distro or operating systen that places libraries elsewhere", &p)}
+    let first_entry = fs::read_dir(&p).unwrap().next();
+    let newlib_path = match first_entry {
+        Some(v) => v.unwrap().path(),
+        None => panic!("Nothing found from {:?}. Please install newlib.", &p),
+    };
 
     // newlib bits path is differs on diffenrent versions of newlib
     let newlib_bits_path = match fpu {
@@ -125,8 +130,11 @@ fn get_config() -> Config {
             } else if v4.is_dir() {  // newlib version 4 path
                 v4
             } else {
-                panic!("Newlib library path not found automatically. Please configure it manually \
-                in build.rs.")
+                panic!("Newlib library path not found automatically. Please configure it manually\n\
+                 in build.rs. Searched from paths:\n\
+                 - {:?}\n\
+                 - {:?}\n\
+                .", v4, v9)
             }
         },
         false => {
