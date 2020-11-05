@@ -15,6 +15,7 @@ pub extern crate teensy3_sys as bindings;
 pub mod serial;
 pub mod spi;
 pub mod util;
+pub mod pins;
 
 /// Processor panic: enter infinite loop. Blink monotonically and keep writing reason
 /// for panic every 10 seconds.
