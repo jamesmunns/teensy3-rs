@@ -141,10 +141,21 @@ impl Pin {
     #[allow(unused_mut)]
     pub fn digital_write(&mut self, val: bool)
     {
-        if self.mode == PinMode::Input {
-            panic!("Please set pin to pullup mode by using `pin.set_mode(PinMode::InputPullup)`")
-        } else if (self.mode != PinMode::Output) || (self.mode != PinMode::OutputOpenDrain) {
-            panic!("Pin must be set to `OUTPUT` for it to be written.")
+        match self.mode {
+            PinMode::Output | PinMode::OutputOpenDrain => {  // Correct path
+                let value = if val {bindings::HIGH as u8} else {bindings::LOW as u8};
+                unsafe {
+                    bindings::digitalWrite(self.num, value);
+                }
+            },
+            PinMode::Input => {
+                panic!("Tried to write to pin while it was not in `INPUT` mode. \
+                \nSet pin to pullup mode by using `pin.set_mode(PinMode::InputPullup)`");
+            },
+            _ => {
+                panic!("Tried to write to pin while it was not in `INPUT` mode. \
+                \nPin must be set to `OUTPUT` for it to be written.");
+            },
         }
     }
 
