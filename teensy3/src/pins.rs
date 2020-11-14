@@ -66,16 +66,15 @@ impl PinRow {
         PinRow([false; NUM_PINS])
     }
 
-    /// If value in arrays is true, then that pin is in use, and can not be "taken out".
-    pub fn check_pin(&self, num: u8) -> bool {
-        return self.0[num as usize]
+    /// Checks if pin has been already reserved. If false, then `get_pin()` can be called for that
+    pub fn is_used(&self, num: usize) -> bool {
+        return self.0[num]
     }
 
     /// Reserve pin for usage
-    pub fn get_pin(&mut self, num: u8, mode: PinMode) -> Pin {
-        if self.0[num as usize] {
-            panic!("Pin already reserved")
-        }
+    pub fn get_pin(&mut self, num: usize, mode: PinMode) -> Pin {
+        // If value in arrays is true, then that pin can not be "taken out".
+        assert!(!self.0[num], panic!("Pin already reserved"));
         let mut pin = Pin{num, mode};
         pin.set_mode(mode);
         if pin.mode == PinMode::Output {
@@ -92,9 +91,7 @@ impl PinRow {
 
     /// Give pin back to pool (consumes Pin)
     pub fn return_pin(&mut self, mut pin: Pin) {
-        if !self.0[pin.num as usize] {
-            panic!("Internal error!")
-        }
+        assert!(self.0[pin.num as usize], "Internal error!");
         if pin.mode == PinMode::Output {
             pin.digital_write(false);
         }
