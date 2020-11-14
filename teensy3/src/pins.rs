@@ -1,4 +1,8 @@
-//! GPIO pin utilities
+//! GPIO pin utilities. API is designed to be safe, and it panics if there are multiple references
+//! to same pin.
+//!
+//! If API feels too restricting for some purpose, then sorry, author is not sure
+//! what operations are undefined behaviour in original API. For example writing to input pin
 
 use bindings;
 use util;
@@ -19,39 +23,52 @@ pub struct Pin {
     mode: PinMode,
 }
 
+static mut PINROW_AVAILABLE: bool = true;
+
 const NUM_PINS: usize =
     if core::cfg!(any(feature = "teensy_3_0", feature = "teensy_3_1", feature = "teensy_3_2")) {
     34
 } else if core::cfg!{any(feature = "teensy_3_5", feature = "teensy_3_6")}{
     58
 } else {
-    0  // never reached, because build script panics if some of above features is not specified
+    0  // This is never reached, because build script panics if some of above feature is unspecified
 };
 
 /// PinRow keeps book what GPIO pins are used and what are free. There is only one
 /// pin-object per physical pin, so pin can be "taken out" from PinRow, and then "returned"
-/// if not used anymore.
-/// If value in arrays is true, then that pin is in use, and can not be "taken out".
+/// if it is not used anymore.
 ///
 /// # Example
 /// ```
-/// fn setup_once() -> PinRowSingleton {
-///     // It's unsafe because caller verifies that it's called once
-///     unsafe{PinRowSingleton::new_once()}
+/// fn setup() -> PinRow {
+///     // It's unsafe because caller verifies that it's called only once
+///     unsafe{PinRow::new_once()}
 /// }
 /// fn main() {
-///     let mut pinrow = setup_once();
+///     let mut pinrow = setup();
 ///     let pin = pinrow.get_pin(12, PinMode::input);
 ///     // Do stuff with pin
+///     loop{}
 /// }
 /// ```
-pub struct PinRowSingleton([bool; NUM_PINS as usize]);
+pub struct PinRow([bool; NUM_PINS as usize]);
 
-impl PinRowSingleton {
-    /// Call this in initialization function
-    /// It's unsafe, because caller verifies that he calls it only once in program life time.
-    pub const unsafe fn new_once() -> PinRowSingleton {
-        PinRowSingleton([false; NUM_PINS])
+impl PinRow {
+    /// Returns singleton struct that can be used to control GPIO pins.
+    /// The calling of this function should happen in program's initialization function.
+    ///
+    /// It's unsafe, because caller verifies that it is called only once in program's life time.
+    /// In most cases this function panics on second call. If there are race cases with threads or
+    /// interruptions, then this may not panic on second call.
+    pub unsafe fn new_once() -> PinRow {
+        let state = core::mem::replace(&mut PINROW_AVAILABLE, false);
+        assert!(state, "Singleton creation called second time");
+        PinRow([false; NUM_PINS])
+    }
+
+    /// If value in arrays is true, then that pin is in use, and can not be "taken out".
+    pub fn check_pin(&self, num: u8) -> bool {
+        return self.0[num as usize]
     }
 
     /// Reserve pin for usage
