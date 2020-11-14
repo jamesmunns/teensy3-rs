@@ -6,6 +6,7 @@
 
 use bindings;
 use util;
+use core::convert::TryInto;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum PinMode {
@@ -19,7 +20,7 @@ pub enum PinMode {
 /// Object corresponding to physical pin. There is only one instance per pin.
 /// To prevent duplication, fields are private, and Copy and Clone are not derived.
 pub struct Pin {
-    num: u8,
+    num: u8,    // there are strictly less than 256 ports on teensy board
     mode: PinMode,
 }
 
@@ -74,8 +75,8 @@ impl PinRow {
     /// Reserve pin for usage
     pub fn get_pin(&mut self, num: usize, mode: PinMode) -> Pin {
         // If value in arrays is true, then that pin can not be "taken out".
-        assert!(!self.0[num], panic!("Pin already reserved"));
-        let mut pin = Pin{num, mode};
+        assert!(!self.0[num], "Pin already reserved");
+        let mut pin = Pin{num: num.try_into().unwrap(), mode: mode};
         pin.set_mode(mode);
         if pin.mode == PinMode::Output {
             pin.digital_write(false);  // By default output is off
@@ -102,7 +103,9 @@ impl PinRow {
 
 impl Pin {
     /// Set pin mode
-    fn set_mode(&mut self, mode: PinMode) {
+    /// If setting to `INPUT`, then pullup resistor is disabled.
+    /// If setting to `INPUT_PULLUP`, it may take time to rise voltage. Call e.g. `util::delay(10)`
+    pub fn set_mode(&mut self, mode: PinMode) {
         let mode_ = match mode {
             PinMode::Input => bindings::INPUT,
             PinMode::Output => bindings::OUTPUT,
@@ -114,9 +117,9 @@ impl Pin {
             bindings::pinMode(self.num, mode_);
         }
         self.mode = mode;
-        // There is slight delay for pin to raise it's voltage to its maximum
-        if mode == PinMode::InputPullup{
-            util::delay(1);  // wait 1ms
+
+        if mode == PinMode::Input{  // Disable pullup in input mode
+            unsafe{bindings::digitalWrite(self.num, bindings::LOW as u8)};
         }
     }
 
@@ -125,9 +128,9 @@ impl Pin {
     pub fn digital_write(&mut self, val: bool)
     {
         if self.mode == PinMode::Input {
-            panic!("Please set pin to pullup mode by using pin.set_mode(PinMode::InputPullup)")
+            panic!("Please set pin to pullup mode by using `pin.set_mode(PinMode::InputPullup)`")
         } else if (self.mode != PinMode::Output) || (self.mode != PinMode::OutputOpenDrain) {
-            panic!("Pin must be set to OUTPUT for it to be written.")
+            panic!("Pin must be set to `OUTPUT` for it to be written.")
         }
         let value = if val {bindings::HIGH as u8} else {bindings::LOW as u8};
         unsafe {
@@ -136,9 +139,19 @@ impl Pin {
     }
 
     /// Read high (true) or low (false) state from pin
-    fn digital_read(&self) -> bool {
+    pub fn digital_read(&self) -> bool {
         unsafe {
             return bindings::digitalRead(self.num) != 0u8;
         }
+    }
+
+    /// Return pin number
+    pub fn get_num(&self) -> usize {
+        return self.num as usize;
+    }
+
+    /// Return pin mode
+    pub fn get_mode(&self) -> PinMode {
+        return self.mode;
     }
 }
