@@ -10,10 +10,24 @@ use core::convert::TryInto;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum PinMode {
+    /// Read digital signal, by determining whether voltage is 0V or more
     Input,
+    /// High current output (~40mA). This current can e.g. light up leds.
+    ///
+    /// If interest is to just check whether two pins are connected, use `InputPullup`
+    /// voltage source for that. Do not connect `Output` pin directly to `Input` pin,
+    /// as output may produce too high current for input.
     Output,
+    /// `InputPullup` is similar to `Input`, and it is made for implementing push buttons. Voltage
+    /// is raised for pin, but it is done so that maximum output current output is very low.
+    /// If this pin is not connected to anything, then voltage is high. If pin is connected to
+    /// ground, then voltage is low on the pin. High and low values are measured with
+    /// `digital_read`. Alternatively to connecting other end to ground is to connect it to
+    /// pin which is set to mode `OutputOpenDrain`.
     InputPullup,
     InputPulldown,
+    /// This pin is connected to ground, in default LOW state. However, if HIGH
+    /// is written to it, then this pin is not connected to anything.
     OutputOpenDrain,
 }
 
@@ -75,7 +89,7 @@ impl PinRow {
     /// Reserve pin for usage
     pub fn get_pin(&mut self, num: usize, mode: PinMode) -> Pin {
         // If value in arrays is true, then that pin can not be "taken out".
-        assert!(!self.0[num], "Pin already reserved");
+        assert!(!self.0[num], "Pin {} already reserved", num);
         let mut pin = Pin{num: num.try_into().unwrap(), mode: mode};
         pin.set_mode(mode);
         if pin.mode == PinMode::Output {
@@ -131,10 +145,6 @@ impl Pin {
             panic!("Please set pin to pullup mode by using `pin.set_mode(PinMode::InputPullup)`")
         } else if (self.mode != PinMode::Output) || (self.mode != PinMode::OutputOpenDrain) {
             panic!("Pin must be set to `OUTPUT` for it to be written.")
-        }
-        let value = if val {bindings::HIGH as u8} else {bindings::LOW as u8};
-        unsafe {
-            bindings::digitalWrite(self.num, value);
         }
     }
 
