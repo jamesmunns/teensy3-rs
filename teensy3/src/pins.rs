@@ -40,14 +40,14 @@ pub struct Pin {
 
 static mut PINROW_AVAILABLE: bool = true;
 
-const NUM_PINS: usize =
-    if core::cfg!(any(feature = "teensy_3_0", feature = "teensy_3_1", feature = "teensy_3_2")) {
-    34
-} else if core::cfg!{any(feature = "teensy_3_5", feature = "teensy_3_6")}{
-    58
-} else {
-    0  // This is never reached, because build script panics if some of above feature is unspecified
-};
+// const NUM_PINS: usize =
+//     if core::cfg!(any(feature = "teensy_3_0", feature = "teensy_3_1", feature = "teensy_3_2")) {
+//     34
+// } else if core::cfg!{any(feature = "teensy_3_5", feature = "teensy_3_6")}{
+//     58
+// } else {
+//     0  // This is never reached, because build script panics if some of above feature is unspecified
+// };
 
 /// PinRow keeps book what GPIO pins are used and what are free. There is only one
 /// pin-object per physical pin, so pin can be "taken out" from PinRow, and then "returned"
@@ -66,7 +66,7 @@ const NUM_PINS: usize =
 ///     loop{}
 /// }
 /// ```
-pub struct PinRow([bool; NUM_PINS as usize]);
+pub struct PinRow([bool; bindings::CORE_NUM_TOTAL_PINS as usize]);
 
 impl PinRow {
     /// Returns singleton struct that can be used to control GPIO pins.
@@ -78,7 +78,7 @@ impl PinRow {
     pub unsafe fn new_once() -> PinRow {
         let state = core::mem::replace(&mut PINROW_AVAILABLE, false);
         assert!(state, "Singleton creation called second time");
-        PinRow([false; NUM_PINS])
+        PinRow([false; bindings::CORE_NUM_TOTAL_PINS as usize])
     }
 
     /// Checks if pin has been already reserved. If false, then `get_pin()` can be called for that
