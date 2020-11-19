@@ -18,18 +18,18 @@ pub mod util;
 pub mod pins;
 
 /// Processor panic: enter infinite loop. Blink monotonically and keep writing reason
-/// for panic every 10 seconds.
+/// for panic every 3 seconds.
 #[panic_handler]
 fn teensy_panic(pi: &core::panic::PanicInfo) -> ! {
     println!("{}", pi);
     loop {
         // Keep writing the reason for panic over and over again
-        for _ in 0..50 {
+        for _ in 0..30 {
             unsafe {
                 bindings::digitalWrite(13, bindings::HIGH as u8);
-                bindings::delay(100);
+                bindings::delay(50);
                 bindings::digitalWrite(13, bindings::LOW as u8);
-                bindings::delay(100);
+                bindings::delay(50);
             }
         }
         println!("-------------------");
