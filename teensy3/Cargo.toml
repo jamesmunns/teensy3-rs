@@ -10,9 +10,33 @@ documentation = "https://docs.rs/crate/teensy3/"
 [dependencies]
 teensy3-sys = {version = "0.2", path = "../teensy3-sys"}
 
-[features]  # Choose one
+[features]
+# Choose one:
 teensy_3_0 = ["teensy3-sys/teensy_3_0"]
 teensy_3_1 = ["teensy3-sys/teensy_3_1"]
 teensy_3_2 = ["teensy3-sys/teensy_3_2"]
 teensy_3_5 = ["teensy3-sys/teensy_3_5"]
 teensy_3_6 = ["teensy3-sys/teensy_3_6"]
+# You may choose only one of following (usb_serial is default)
+usb_serial = ["teensy3-sys/usb_serial"]          # tested
+usb_serial_hid = ["teensy3-sys/usb_serial_hid"]  # tested, but everything below is not tested
+usb_dual_serial = ["teensy3-sys/usb_dual_serial"]
+usb_triple_serial = ["teensy3-sys/usb_triple_serial"]
+usb_keyboardonly = ["teensy3-sys/usb_keyboardonly"]
+usb_hid = ["teensy3-sys/usb_hid"]
+usb_touchscreen = ["teensy3-sys/usb_touchscreen"]
+usb_hid_touchscreen = ["teensy3-sys/usb_hid_touchscreen"]
+usb_midi = ["teensy3-sys/usb_midi"]
+usb_midi4 = ["teensy3-sys/usb_midi4"]
+usb_midi16 = ["teensy3-sys/usb_midi16"]
+usb_midi_serial = ["teensy3-sys/usb_midi_serial"]
+usb_midi4_serial = ["teensy3-sys/usb_midi4_serial"]
+usb_midi16_serial = ["teensy3-sys/usb_midi16_serial"]
+usb_rawhid = ["teensy3-sys/usb_rawhid"]
+usb_flightsim = ["teensy3-sys/usb_flightsim"]
+usb_flightsim_joystick = ["teensy3-sys/usb_flightsim_joystick"]
+usb_mtpdisk = ["teensy3-sys/usb_mtpdisk"]
+usb_audio = ["teensy3-sys/usb_audio"]
+usb_midi_audio_serial = ["teensy3-sys/usb_midi_audio_serial"]
+usb_midi16_audio_serial = ["teensy3-sys/usb_midi16_audio_serial"]
+usb_everything = ["teensy3-sys/usb_everything"]

@@ -15,16 +15,57 @@ static COMPILER_FLAGS: &[&str] = &[
     "-ffunction-sections",  // unused function removal, use linker flag "link-arg=-Wl,--gc-sections
     "-fdata-sections",      // unused data removal, use linker flag "link-arg=-Wl,--gc-sections
     "-DLAYOUT_US_ENGLISH",
-    // You can enable different teensy features by changing following "-D____" flag.
-    // For example, disable keyboard/mouse functionality by replacing it with "-DUSB_SERIAL".
-    // Here's full list of possibilities from cores/teensy3/usb_dec.h (I have not tested them)
-    //     USB_SERIAL, USB_DUAL_SERIAL, USB_TRIPLE_SERIAL, USB_KEYBOARDONLY, USB_HID,
-    //     USB_SERIAL_HID, USB_TOUCHSCREEN, USB_HID_TOUCHSCREEN, USB_MIDI, USB_MIDI4
-    //     USB_MIDI16, USB_MIDI_SERIAL, USB_MIDI4_SERIAL, USB_MIDI16_SERIAL, USB_RAWHID
-    //     USB_FLIGHTSIM, USB_FLIGHTSIM_JOYSTICK, USB_MTPDISK, USB_AUDIO,
-    //     USB_MIDI_AUDIO_SERIAL, USB_MIDI16_AUDIO_SERIAL, USB_EVERYTHING
-    "-DUSB_SERIAL",      // usb serial (i.e. print output to computer)
-    //"-DUSB_SERIAL_HID",  // usb serial + mouse/keyboard
+    // You can enable different teensy features by choosing one of following flags
+    // Here's full list of possibilities from cores/teensy3/usb_dec.h
+    // Only -DUSB_SERIAL and -DUSB_SERIAL_HID are tested. Other flags probably require fine tuning
+    // with `bindgen::Builder::blacklist_item()`.
+    if cfg!(feature = "usb_serial") {
+        "-DUSB_SERIAL"      // usb serial (i.e. print output to computer)
+    } else if cfg!(feature = "usb_serial_hid") {
+        "-DUSB_SERIAL_HID"  // usb serial + mouse/keyboard
+    } else if cfg!(feature = "usb_dual_serial") {
+        "-DUSB_DUAL_SERIAL"
+    } else if cfg!(feature = "usb_triple_serial") {
+        "-DUSB_TRIPLE_SERIAL"
+    } else if cfg!(feature = "usb_keyboardonly") {
+        "-DUSB_KEYBOARDONLY"
+    } else if cfg!(feature = "usb_hid") {
+        "-DUSB_HID"
+    } else if cfg!(feature = "usb_touchscreen") {
+        "-DUSB_TOUCHSCREEN"
+    } else if cfg!(feature = "usb_hid_touchscreen") {
+        "-DUSB_HID_TOUCHSCREEN"
+    } else if cfg!(feature = "usb_midi") {
+        "-DUSB_MIDI"
+    } else if cfg!(feature = "usb_midi4") {
+        "-DUSB_MIDI4"
+    } else if cfg!(feature = "usb_midi16") {
+        "-DUSB_MIDI16"
+    } else if cfg!(feature = "usb_midi_serial") {
+        "-DUSB_MIDI_SERIAL"
+    } else if cfg!(feature = "usb_midi4_serial") {
+        "-DUSB_MIDI4_SERIAL"
+    } else if cfg!(feature = "usb_midi16_serial") {
+        "-DUSB_MIDI16_SERIAL"
+    } else if cfg!(feature = "usb_rawhid") {
+        "-DUSB_RAWHID"
+    } else if cfg!(feature = "usb_flightsim") {
+        "-DUSB_FLIGHTSIM"
+    } else if cfg!(feature = "usb_flightsim_joystick") {
+        "-DUSB_FLIGHTSIM_JOYSTICK"
+    } else if cfg!(feature = "usb_mtpdisk") {
+        "-DUSB_MTPDISK"
+    } else if cfg!(feature = "usb_audio") {
+        "-DUSB_AUDIO"
+    } else if cfg!(feature = "usb_midi_audio_serial") {
+        "-DUSB_MIDI_AUDIO_SERIAL"
+    } else if cfg!(feature = "usb_midi16_audio_serial") {
+        "-DUSB_MIDI16_AUDIO_SERIAL"
+    } else if cfg!(feature = "usb_everything") {
+        "-DUSB_EVERYTHING"
+    } else {
+        "-DUSB_SERIAL"
+    },
     "-DTEENSYDUINO",
 ];
 
@@ -57,8 +98,8 @@ fn get_src_paths() -> [PathBuf;2] {
     ]
 }
 
-fn get_config() -> Config {
-    let features = vec![
+fn assert_features() {
+    let model_features = vec![
         cfg!(feature = "teensy_3_0"),
         cfg!(feature = "teensy_3_1"),
         cfg!(feature = "teensy_3_2"),
@@ -66,10 +107,40 @@ fn get_config() -> Config {
         cfg!(feature = "teensy_3_6"),
     ];
 
-    if features.iter().filter(|&f| *f).count() != 1 {
+    if model_features.iter().filter(|&f| *f).count() != 1 {
         panic!("Invalid features! Define one board for teensy3. E.g. add feature 'teensy_3_6'");
     }
+    let compilation_features = vec![
+        cfg!(feature = "usb_serial"),
+        cfg!(feature = "usb_serial_hid"),
+        cfg!(feature = "usb_dual_serial"),
+        cfg!(feature = "usb_triple_serial"),
+        cfg!(feature = "usb_keyboardonly"),
+        cfg!(feature = "usb_hid"),
+        cfg!(feature = "usb_touchscreen"),
+        cfg!(feature = "usb_hid_touchscreen"),
+        cfg!(feature = "usb_midi"),
+        cfg!(feature = "usb_midi4"),
+        cfg!(feature = "usb_midi16"),
+        cfg!(feature = "usb_midi_serial"),
+        cfg!(feature = "usb_midi4_serial"),
+        cfg!(feature = "usb_midi16_serial"),
+        cfg!(feature = "usb_rawhid"),
+        cfg!(feature = "usb_flightsim"),
+        cfg!(feature = "usb_flightsim_joystick"),
+        cfg!(feature = "usb_mtpdisk"),
+        cfg!(feature = "usb_audio"),
+        cfg!(feature = "usb_midi_audio_serial"),
+        cfg!(feature = "usb_midi16_audio_serial"),
+        cfg!(feature = "usb_everything"),
+    ];
 
+    if compilation_features.iter().filter(|&f| *f).count() > 1 {
+        panic!("Invalid features! Define one compilation feature. E.g. enable only 'usb_serial'.");
+    }
+}
+
+fn get_config() -> Config {
     let target = std::env::var("TARGET").unwrap();
     let fpu; // FPU: hardware based Floating Point Unit
     let compiler_flags;
@@ -319,6 +390,8 @@ fn generate_bindings(config: &Config) {
 }
 
 fn main() {
+    assert_features();
+
     // Testing, can be removed
     if false {  // Figure out what's inside docker container
         // execute arbitrary shell commands
