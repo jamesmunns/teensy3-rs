@@ -5,7 +5,6 @@
 //! what operations are undefined behaviour in original API. For example writing to input pin
 
 use bindings;
-use util;
 use core::convert::TryInto;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
