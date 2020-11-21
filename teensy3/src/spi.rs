@@ -32,9 +32,9 @@ type RenderedSpi = u32;
 impl SpiSettings {
     pub fn new(max_clock: u32, order: BitOrder, mode: Mode) -> SpiSettings {
         let mut new = SpiSettings {
-            max_clock: max_clock,
-            order: order,
-            mode: mode,
+            max_clock,
+            order,
+            mode,
             ctar: 0
         };
         new.ctar = new.render();

@@ -243,7 +243,7 @@ fn src_files(path: &PathBuf) -> (Vec<PathBuf>, Vec<PathBuf>) {
     }
     else if path.is_dir() {
         path.read_dir()
-            .expect(&format!("Unable to read directory: {}", path.to_str().unwrap()))
+            .unwrap_or_else(|_| panic!("Unable to read directory: {}", path.to_str().unwrap()))
             .filter_map(|entry| {
                 let entry = entry.expect("Unable to read a file from teensy3 directory");
 
@@ -295,7 +295,7 @@ fn compile(config: &Config) {
     }
 
     let mut c = builder.clone();
-    let mut cpp = builder.clone();
+    let mut cpp = builder;
 
     for flag in C_FLAGS {
         c.flag(flag);

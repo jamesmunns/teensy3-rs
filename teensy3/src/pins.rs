@@ -83,7 +83,7 @@ impl PinRow {
     pub fn get_pin(&mut self, num: usize, mode: PinMode) -> Pin {
         // If value in arrays is true, then that pin can not be "taken out".
         assert!(!self.0[num], "Pin {} already reserved", num);
-        let mut pin = Pin{num: num.try_into().unwrap(), mode: mode};
+        let mut pin = Pin{num: num.try_into().unwrap(), mode};
         pin.set_mode(mode);
         if pin.mode == PinMode::Output {
             pin.digital_write(false);  // By default output is off
