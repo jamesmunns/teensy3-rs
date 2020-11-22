@@ -32,6 +32,7 @@ pub enum PinMode {
 
 /// Object corresponding to physical pin. There is only one instance per pin.
 /// To prevent duplication, fields are private, and Copy and Clone are not derived.
+#[derive(Debug)]
 pub struct Pin {
     num: u8,    // there are strictly less than 256 ports on teensy board
     mode: PinMode,
