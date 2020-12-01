@@ -60,12 +60,14 @@ pub const LED_PIN: usize = bindings::LED_BUILTIN as usize;
 ///     loop{}
 /// }
 /// ```
+#[allow(clippy::needless_doctest_main)]
 pub struct PinRow([bool; NUM_PINS]);
 
 impl PinRow {
     /// Returns singleton struct that can be used to control GPIO pins.
     /// The calling of this function should happen in program's initialization function.
     ///
+    /// # Safety
     /// It's unsafe, because caller verifies that it is called only once in program's life time.
     /// In most cases this function panics on second call. If there are race cases with threads or
     /// interruptions, then this may not panic on second call.

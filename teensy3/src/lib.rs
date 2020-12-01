@@ -4,8 +4,10 @@
 //! Teensyduino libraries provided by the manufacturer
 
 #![no_std]
-//#![feature(lang_items)]
-#![allow(dead_code)]
+#![allow(clippy::needless_return)]
+// Bindgen does not generate fully clippy-compliant code.
+#![allow(clippy::approx_constant)]
+#![allow(clippy::redundant_static_lifetimes)]
 
 /// Unsafe C++ Teensyduino bindings from the teensy3-sys crate
 pub extern crate teensy3_sys as bindings;

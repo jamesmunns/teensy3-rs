@@ -9,6 +9,7 @@ use std::path::PathBuf;
 use std::process::Command;
 
 // Both c and c++
+#[allow(clippy::if_same_then_else)]
 static COMPILER_FLAGS: &[&str] = &[
     "-mthumb",
     "-mcpu=cortex-m4",
