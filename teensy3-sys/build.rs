@@ -14,7 +14,7 @@ static COMPILER_FLAGS: &[&str] = &[
     "-mcpu=cortex-m4",
     "-ffunction-sections",  // unused function removal, use linker flag "link-arg=-Wl,--gc-sections
     "-fdata-sections",      // unused data removal, use linker flag "link-arg=-Wl,--gc-sections
-    "-DLAYOUT_US_ENGLISH",
+    "-DTEENSYDUINO",
     // You can enable different teensy features by choosing one of following flags
     // Here's full list of possibilities from cores/teensy3/usb_dec.h
     // Only -DUSB_SERIAL and -DUSB_SERIAL_HID are tested. Other flags probably require fine tuning
@@ -66,8 +66,58 @@ static COMPILER_FLAGS: &[&str] = &[
     } else {
         "-DUSB_SERIAL"
     },
-    "-DTEENSYDUINO",
+    // Keyboard layout
+    if cfg!(feature = "layout_us_english") {
+        "-DLAYOUT_US_ENGLISH"
+    } else if cfg!(feature = "layout_canadian_french") {
+        "-DLAYOUT_CANADIAN_FRENCH"
+    } else if cfg!(feature = "layout_canadian_multilingual") {
+        "-DLAYOUT_CANADIAN_MULTILINGUAL"
+    } else if cfg!(feature = "layout_danish") {
+        "-DLAYOUT_DANISH"
+    } else if cfg!(feature = "layout_finnish") {
+        "-DLAYOUT_FINNISH"
+    } else if cfg!(feature = "layout_french") {
+        "-DLAYOUT_FRENCH"
+    } else if cfg!(feature = "layout_french_belgian") {
+        "-DLAYOUT_FRENCH_BELGIAN"
+    } else if cfg!(feature = "layout_french_swiss") {
+        "-DLAYOUT_FRENCH_SWISS"
+    } else if cfg!(feature = "layout_german") {
+        "-DLAYOUT_GERMAN"
+    } else if cfg!(feature = "layout_german_mac") {
+        "-DLAYOUT_GERMAN_MAC"
+    } else if cfg!(feature = "layout_german_swiss") {
+        "-DLAYOUT_GERMAN_SWISS"
+    } else if cfg!(feature = "layout_icelandic") {
+        "-DLAYOUT_ICELANDIC"
+    } else if cfg!(feature = "layout_irish") {
+        "-DLAYOUT_IRISH"
+    } else if cfg!(feature = "layout_italian") {
+        "-DLAYOUT_ITALIAN"
+    } else if cfg!(feature = "layout_norwegian") {
+        "-DLAYOUT_NORWEGIAN"
+    } else if cfg!(feature = "layout_portuguese") {
+        "-DLAYOUT_PORTUGUESE"
+    } else if cfg!(feature = "layout_portuguese_brazilian") {
+        "-DLAYOUT_PORTUGUESE_BRAZILIAN"
+    } else if cfg!(feature = "layout_spanish") {
+        "-DLAYOUT_SPANISH"
+    } else if cfg!(feature = "layout_spanish_latin_america") {
+        "-DLAYOUT_SPANISH_LATIN_AMERICA"
+    } else if cfg!(feature = "layout_swedish") {
+        "-DLAYOUT_SWEDISH"
+    } else if cfg!(feature = "layout_turkish") {
+        "-DLAYOUT_TURKISH"
+    } else if cfg!(feature = "layout_united_kingdom") {
+        "-DLAYOUT_UNITED_KINGDOM"
+    } else if cfg!(feature = "layout_us_international") {
+        "-DLAYOUT_US_INTERNATIONAL"
+    } else {
+        "-DLAYOUT_US_INTERNATIONAL"
+    },
 ];
+
 
 static C_FLAGS: &[&str] = &[
 ];
@@ -137,6 +187,35 @@ fn assert_features() {
 
     if compilation_features.iter().filter(|&f| *f).count() > 1 {
         panic!("Invalid features! Define one compilation feature. E.g. enable only 'usb_serial'.");
+    }
+
+    let keyboard_features = vec![
+        cfg!(feature = "layout_us_english"),
+        cfg!(feature = "layout_canadian_french"),
+        cfg!(feature = "layout_canadian_multilingual"),
+        cfg!(feature = "layout_danish"),
+        cfg!(feature = "layout_finnish"),
+        cfg!(feature = "layout_french"),
+        cfg!(feature = "layout_french_belgian"),
+        cfg!(feature = "layout_french_swiss"),
+        cfg!(feature = "layout_german"),
+        cfg!(feature = "layout_german_mac"),
+        cfg!(feature = "layout_german_swiss"),
+        cfg!(feature = "layout_icelandic"),
+        cfg!(feature = "layout_irish"),
+        cfg!(feature = "layout_italian"),
+        cfg!(feature = "layout_norwegian"),
+        cfg!(feature = "layout_portuguese"),
+        cfg!(feature = "layout_portuguese_brazilian"),
+        cfg!(feature = "layout_spanish"),
+        cfg!(feature = "layout_spanish_latin_america"),
+        cfg!(feature = "layout_swedish"),
+        cfg!(feature = "layout_turkish"),
+        cfg!(feature = "layout_united_kingdom"),
+        cfg!(feature = "layout_us_international"),
+    ];
+    if keyboard_features.iter().filter(|&f| *f).count() > 1 {
+        panic!("Invalid features! Define one keyboard feature. E.g. enable only 'layout_us_english'.");
     }
 }
 

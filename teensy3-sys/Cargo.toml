@@ -18,9 +18,10 @@ teensy_3_1 = []
 teensy_3_2 = []
 teensy_3_5 = []
 teensy_3_6 = []
-# You may choose only one of following (usb_serial is default)
-usb_serial = []      # tested
-usb_serial_hid = []  # tested, but everything below is not tested
+
+# Teensy opt-in features. You may choose only one
+usb_serial = []      # Tested, this is default is none is chosen.
+usb_serial_hid = []  # Tested, but everything below is not tested.
 usb_dual_serial = []
 usb_triple_serial = []
 usb_keyboardonly = []
@@ -41,6 +42,31 @@ usb_audio = []
 usb_midi_audio_serial = []
 usb_midi16_audio_serial = []
 usb_everything = []
+
+# Keyboard layout features, you may choose only one
+layout_us_international = [] # this is default is none is chosen
+layout_us_english = []
+layout_canadian_french = []
+layout_canadian_multilingual = []
+layout_danish = []
+layout_finnish = []
+layout_french = []
+layout_french_belgian = []
+layout_french_swiss = []
+layout_german = []
+layout_german_mac = []
+layout_german_swiss = []
+layout_icelandic = []
+layout_irish = []
+layout_italian = []
+layout_norwegian = []
+layout_portuguese = []
+layout_portuguese_brazilian = []
+layout_spanish = []
+layout_spanish_latin_america = []
+layout_swedish = []
+layout_turkish = []
+layout_united_kingdom = []
 
 [build-dependencies]
 bindgen = "0.55.1"
