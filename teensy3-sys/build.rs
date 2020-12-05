@@ -1,3 +1,4 @@
+#![allow(clippy::needless_return)]
 extern crate bindgen;
 extern crate cc;
 
