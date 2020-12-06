@@ -64,15 +64,15 @@ pub const LED_PIN: usize = bindings::LED_BUILTIN as usize;
 pub struct PinRow([bool; NUM_PINS]);
 
 impl PinRow {
-    /// Returns singleton struct that can be used to control GPIO pins.
-    /// The calling of this function should happen in program's initialization function.
+    /// Returns singleton struct that can be used to control GPIO pins. It can be called
+    /// only once. It is intended to be called in initialization function of program.
     ///
     /// # Safety
-    /// It's unsafe, because caller verifies that it is called only once in program's life time.
-    /// In most cases this function panics on second call. If there are race cases with threads or
-    /// interruptions, then this may not panic on second call.
-    pub unsafe fn new_once() -> PinRow {
-        let state = core::mem::replace(&mut PINROW_AVAILABLE, false);
+    /// Caller verifies that it is called only once in program's life time. In most cases this
+    /// function panics on second call. If there are race cases with threads or interruptions,
+    /// then this may not panic on second call. So this could also marked as unsafe function.
+    pub fn new_once() -> PinRow {
+        let state = unsafe { core::mem::replace(&mut PINROW_AVAILABLE, false) };
         assert!(state, "Singleton creation called second time");
         PinRow([false; NUM_PINS])
     }
