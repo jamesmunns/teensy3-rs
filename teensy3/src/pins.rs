@@ -97,7 +97,9 @@ impl PinRow {
 
     /// Return led pin and set it to output
     pub fn get_led(&mut self) -> Pin{
-        return self.get_pin(LED_PIN, PinMode::Output);
+        let mut led = self.get_pin(LED_PIN, PinMode::Output);
+        led.digital_write(false);
+        return led;
     }
 
     /// Give pin back to pool (consumes Pin)
