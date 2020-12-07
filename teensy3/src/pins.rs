@@ -54,7 +54,7 @@ pub const LED_PIN: usize = bindings::LED_BUILTIN as usize;
 /// }
 /// fn main() {
 ///     let mut pinrow = setup();
-///     let pin = pinrow.get_pin(12, PinMode::input);
+///     let pin = pinrow.get_pin(12, PinMode::Input);
 ///     // Do stuff with pin
 ///     loop{}
 /// }
