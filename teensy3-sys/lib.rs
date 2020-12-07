@@ -1,5 +1,9 @@
 #![no_std]
 #![allow(non_camel_case_types, non_snake_case, non_upper_case_globals)]
+#![allow(clippy::needless_return)]
+#![allow(clippy::redundant_static_lifetimes)]
+#![allow(clippy::missing_safety_doc)]
+#![allow(clippy::approx_constant)]
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 

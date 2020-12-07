@@ -1,7 +1,7 @@
 [package]
 name = "teensy3"
 version = "0.2.0"
-authors = ["Simon Sapin <simon.sapin@exyr.org>", "James Munns <james.munns@gmail.com>"]
+authors = ["Alpi Tolvanen <alpi.tolvanen@tutanota.com>", "Simon Sapin <simon.sapin@exyr.org>", "James Munns <james.munns@gmail.com>"]
 license = "MIT"
 description = "Rust interface layer for the Teensy 3.1/3.2 microcontroller"
 repository = "https://github.com/jamesmunns/teensy3-rs"
@@ -9,3 +9,61 @@ documentation = "https://docs.rs/crate/teensy3/"
 
 [dependencies]
 teensy3-sys = {version = "0.2", path = "../teensy3-sys"}
+
+[features]
+# Choose one:
+teensy_3_0 = ["teensy3-sys/teensy_3_0"]
+teensy_3_1 = ["teensy3-sys/teensy_3_1"]
+teensy_3_2 = ["teensy3-sys/teensy_3_2"]
+teensy_3_5 = ["teensy3-sys/teensy_3_5"]
+teensy_3_6 = ["teensy3-sys/teensy_3_6"]
+
+# Teensy opt-in features. You may choose only one of following.
+usb_serial = ["teensy3-sys/usb_serial"]          # Tested, this is default if none chosen.
+usb_serial_hid = ["teensy3-sys/usb_serial_hid"]  # Tested, but everything below is not tested.
+usb_dual_serial = ["teensy3-sys/usb_dual_serial"]
+usb_triple_serial = ["teensy3-sys/usb_triple_serial"]
+usb_keyboardonly = ["teensy3-sys/usb_keyboardonly"]
+usb_hid = ["teensy3-sys/usb_hid"]
+usb_touchscreen = ["teensy3-sys/usb_touchscreen"]
+usb_hid_touchscreen = ["teensy3-sys/usb_hid_touchscreen"]
+usb_midi = ["teensy3-sys/usb_midi"]
+usb_midi4 = ["teensy3-sys/usb_midi4"]
+usb_midi16 = ["teensy3-sys/usb_midi16"]
+usb_midi_serial = ["teensy3-sys/usb_midi_serial"]
+usb_midi4_serial = ["teensy3-sys/usb_midi4_serial"]
+usb_midi16_serial = ["teensy3-sys/usb_midi16_serial"]
+usb_rawhid = ["teensy3-sys/usb_rawhid"]
+usb_flightsim = ["teensy3-sys/usb_flightsim"]
+usb_flightsim_joystick = ["teensy3-sys/usb_flightsim_joystick"]
+usb_mtpdisk = ["teensy3-sys/usb_mtpdisk"]
+usb_audio = ["teensy3-sys/usb_audio"]
+usb_midi_audio_serial = ["teensy3-sys/usb_midi_audio_serial"]
+usb_midi16_audio_serial = ["teensy3-sys/usb_midi16_audio_serial"]
+usb_everything = ["teensy3-sys/usb_everything"]
+
+# Keyboard layout features, you may choose only one.
+layout_us_international = ["teensy3-sys/layout_us_international"] # This is default if none chosen.
+layout_us_english = ["teensy3-sys/layout_us_english"]
+layout_canadian_french = ["teensy3-sys/layout_canadian_french"]
+layout_canadian_multilingual = ["teensy3-sys/layout_canadian_multilingual"]
+layout_danish = ["teensy3-sys/layout_danish"]
+layout_finnish = ["teensy3-sys/layout_finnish"]
+layout_french = ["teensy3-sys/layout_french"]
+layout_french_belgian = ["teensy3-sys/layout_french_belgian"]
+layout_french_swiss = ["teensy3-sys/layout_french_swiss"]
+layout_german = ["teensy3-sys/layout_german"]
+layout_german_mac = ["teensy3-sys/layout_german_mac"]
+layout_german_swiss = ["teensy3-sys/layout_german_swiss"]
+layout_icelandic = ["teensy3-sys/layout_icelandic"]
+layout_irish = ["teensy3-sys/layout_irish"]
+layout_italian = ["teensy3-sys/layout_italian"]
+layout_norwegian = ["teensy3-sys/layout_norwegian"]
+layout_portuguese = ["teensy3-sys/layout_portuguese"]
+layout_portuguese_brazilian = ["teensy3-sys/layout_portuguese_brazilian"]
+layout_spanish = ["teensy3-sys/layout_spanish"]
+layout_spanish_latin_america = ["teensy3-sys/layout_spanish_latin_america"]
+layout_swedish = ["teensy3-sys/layout_swedish"]
+layout_turkish = ["teensy3-sys/layout_turkish"]
+layout_united_kingdom = ["teensy3-sys/layout_united_kingdom"]
+

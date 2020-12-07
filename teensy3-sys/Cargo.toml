@@ -1,7 +1,7 @@
 [package]
 name = "teensy3-sys"
 version = "0.2.0"
-authors = ["Paul Stoffregen <paul@pjrc.com>", "Simon Sapin <simon.sapin@exyr.org>", "James Munns <james.munns@gmail.com>"]
+authors = ["Alpi Tolvanen <alpi.tolvanen@tutanota.com>", "Paul Stoffregen <paul@pjrc.com>", "Simon Sapin <simon.sapin@exyr.org>", "James Munns <james.munns@gmail.com>"]
 description = "Servo Bindgen generated bindings, and Teensyduino ASM/C/CPP/Linker components"
 license = "MIT/LGPL-2.1"
 repository = "https://github.com/jamesmunns/teensy3-rs"
@@ -11,5 +11,64 @@ build = "build.rs"
 [lib]
 path = "lib.rs"
 
+[features]
+# Choose only one of following
+teensy_3_0 = []
+teensy_3_1 = []
+teensy_3_2 = []
+teensy_3_5 = []
+teensy_3_6 = []
+
+# Teensy opt-in features. You may choose only one
+usb_serial = []      # Tested, this is default is none is chosen.
+usb_serial_hid = []  # Tested, but everything below is not tested.
+usb_dual_serial = []
+usb_triple_serial = []
+usb_keyboardonly = []
+usb_hid = []
+usb_touchscreen = []
+usb_hid_touchscreen = []
+usb_midi = []
+usb_midi4 = []
+usb_midi16 = []
+usb_midi_serial = []
+usb_midi4_serial = []
+usb_midi16_serial = []
+usb_rawhid = []
+usb_flightsim = []
+usb_flightsim_joystick = []
+usb_mtpdisk = []
+usb_audio = []
+usb_midi_audio_serial = []
+usb_midi16_audio_serial = []
+usb_everything = []
+
+# Keyboard layout features, you may choose only one
+layout_us_international = [] # this is default is none is chosen
+layout_us_english = []
+layout_canadian_french = []
+layout_canadian_multilingual = []
+layout_danish = []
+layout_finnish = []
+layout_french = []
+layout_french_belgian = []
+layout_french_swiss = []
+layout_german = []
+layout_german_mac = []
+layout_german_swiss = []
+layout_icelandic = []
+layout_irish = []
+layout_italian = []
+layout_norwegian = []
+layout_portuguese = []
+layout_portuguese_brazilian = []
+layout_spanish = []
+layout_spanish_latin_america = []
+layout_swedish = []
+layout_turkish = []
+layout_united_kingdom = []
+
 [build-dependencies]
-bindgen = "0.23.1"
+bindgen = "0.55.1"
+cc = "1.0.61"
+
