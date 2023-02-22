@@ -1,4 +1,6 @@
-//! Basic Arduino utilities for the Teensy 3.1/3.2
+//! Basic Arduino utilities for the Teensy
+
+#![allow(clippy::new_without_default)]
 
 use bindings;
 
@@ -9,40 +11,73 @@ pub fn delay(ms: u32) {
     }
 }
 
-/// Set `pin` to high or low
-pub fn digital_write(pin: u8, val: bool)
-{
-    unsafe {
-        bindings::digitalWrite(pin,
-            if val {bindings::HIGH as u8} else {bindings::LOW as u8});
+/// Measure time differences in millisecond.
+/// # Examples
+/// ```
+/// use teensy3::util::{delay, MillisTimer};
+/// let now = MillisTimer::new();
+/// delay(200);
+/// println!("About {:?} ~ 200 ms elapsed", now.elapsed());
+/// delay(300);
+/// println!("About {:?} ~ 500 ms elapsed", now.elapsed());
+/// ```
+pub struct MillisTimer {
+    pub init_time: u32
+}
+
+impl MillisTimer {
+    /// Create timer with internal milliseconds set to value, where time 0 corresponds to
+    /// first call of `MillisTimer::new()` in program's lifetime.
+    pub fn new() -> Self {
+        let now = unsafe{bindings::elapsedMillis::new()};
+        MillisTimer {init_time: now.ms}
+    }
+
+    /// Elapsed milliseconds from the creation of this object. Maximum measurable time difference
+    /// is about 49 days due to the 32 bit integer limits. Then it loops over.
+    pub fn elapsed(&self) -> u32 {
+        let now = unsafe{bindings::elapsedMillis::new()};
+        return if now.ms > self.init_time {
+            now.ms - self.init_time
+        } else {
+            // Timer overflowed
+            (u32::MAX - self.init_time) + now.ms + 1
+        }
     }
 }
 
-/// Read high or low from `pin`
-pub fn digital_read(pin: u8) -> bool {
-    unsafe {
-        if bindings::digitalRead(pin) == 0u8 {false} else {true}
+
+/// Measure time differences in microseconds.
+/// # Examples
+/// ```
+/// use teensy3::util::{delay, MicrosTimer};
+/// let now = MicrosTimer::new();
+/// delay(2);
+/// println!("About {:?} ~ 2000 us elapsed", now.elapsed());
+/// delay(3);
+/// println!("About {:?} ~ 5000 us elapsed", now.elapsed());
+/// ```
+pub struct MicrosTimer {
+    pub init_time: u32
+}
+
+impl MicrosTimer {
+    /// Create timer with internal microseconds set to value, where time 0 corresponds to
+    /// first call of `MicrosTimer::new()` in program's lifetime.
+    pub fn new() -> Self {
+        let now = unsafe{bindings::elapsedMicros::new()};
+        MicrosTimer {init_time: now.us}
     }
-}
 
-#[derive(Debug)]
-pub enum PinMode {
-    Input,
-    Output,
-    InputPullup,
-    InputPulldown,
-    OutputOpenDrain,
-}
-
-/// Set `pin` to `mode`
-pub fn pin_mode(pin: u8, mode: PinMode) {
-    unsafe {
-        bindings::pinMode(pin, match mode {
-            PinMode::Input => bindings::INPUT,
-            PinMode::Output => bindings::OUTPUT,
-            PinMode::InputPullup => bindings::INPUT_PULLUP,
-            PinMode::InputPulldown => bindings::INPUT_PULLDOWN,
-            PinMode::OutputOpenDrain => bindings::OUTPUT_OPENDRAIN,
-        } as u8);
+    /// Elapsed microseconds from the creation of this object. Maximum measurable time difference
+    /// is about 71 minutes due to the 32 bit integer limits. Then it loops over.
+    pub fn elapsed(&self) -> u32 {
+        let now = unsafe{bindings::elapsedMicros::new()};
+        return if now.us > self.init_time {
+            now.us - self.init_time
+        } else {
+            // Timer overflowed
+            (u32::MAX - self.init_time) + now.us + 1
+        }
     }
 }
