@@ -23,7 +23,7 @@ If Cross is not used, then note that the build script assumes conventional paths
 * [teensy-loader-cli](https://www.pjrc.com/teensy/loader_cli.html)
   for flashing programs into hardware.
 * Cross and Docker are highly recommended. See more in template [teensy3-rs-demo](https://github.com/tolvanea/teensy3-rs-demo).
-* Cross is not used, then numerous dependencies need to be installed manually. On ubuntu, most of them can be probably installed with:
+* If cross is not used, then numerous dependencies need to be installed manually. On ubuntu, most of them can be probably installed with:
 ```
 apt-get install \
     gcc-arm-none-eabi \
